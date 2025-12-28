@@ -23,6 +23,10 @@ if GOOGLE_API_KEY:
 
 def extract_text_with_azure(image_bytes):
     """Extract text using Azure AI Vision (Computer Vision)"""
+    if not AZURE_VISION_KEY:
+        logger.error("❌ Azure AI Vision Key is missing.")
+        return None
+        
     try:
         # Create a client
         client = ImageAnalysisClient(
