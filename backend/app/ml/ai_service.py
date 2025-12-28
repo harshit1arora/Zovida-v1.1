@@ -39,7 +39,7 @@ def chat_with_ai(message: str, history: list = None):
             model="llama-3.3-70b-versatile",
             messages=messages,
             temperature=0.5,
-            max_tokens: 1024,
+            max_tokens=1024,
         )
 
         return completion.choices[0].message.content or "I couldn't generate a response."
