@@ -103,6 +103,12 @@ def extract_text_with_gemini(image_bytes):
         return None
 
 def extract_text(file):
+    # Log configuration status for debugging
+    azure_config = get_azure_config()
+    google_key = get_google_config()
+    
+    logger.info(f"🔍 OCR Request Received. Config Status: Azure Key={'✅' if azure_config['key'] else '❌'}, Gemini Key={'✅' if google_key else '❌'}")
+    
     try:
         # Read file bytes
         image_bytes = file.file.read()

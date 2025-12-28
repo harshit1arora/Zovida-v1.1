@@ -33,6 +33,23 @@ app.add_middleware(
 @app.on_event("startup")
 def startup():
     init_db()
+    
+    # Check for environment variables
+    print("\n" + "="*50)
+    print("🚀 ZOVIDA BACKEND STARTUP CONFIGURATION CHECK")
+    print("="*50)
+    services = {
+        "Azure AI Vision (OCR)": "AZURE_VISION_KEY",
+        "Groq AI (Analysis)": "GROQ_API_KEY",
+        "Gemini AI (Fallback)": "GOOGLE_API_KEY",
+        "Twilio (SMS)": "TWILIO_ACCOUNT_SID"
+    }
+    
+    for name, var in services.items():
+        status = "✅ CONFIGURED" if os.getenv(var) else "❌ MISSING"
+        print(f"{name:25}: {status}")
+    
+    print("="*50 + "\n")
 
 # ✅ Register routers
 app.include_router(auth_router)
