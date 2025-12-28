@@ -1,0 +1,20 @@
+DDInterID_A,Drug_A,DDInterID_B,Drug_B,Level
+DDInter1263,Naltrexone,DDInter1,Abacavir,Moderate
+DDInter1,Abacavir,DDInter1348,Orlistat,Moderate
+DDInter58,Aluminum hydroxide,DDInter582,Dolutegravir,Major
+DDInter112,Aprepitant,DDInter582,Dolutegravir,Minor
+DDInter138,Attapulgite,DDInter582,Dolutegravir,Major
+DDInter270,Calcium acetate,DDInter582,Dolutegravir,Major
+DDInter271,Calcium carbonate,DDInter582,Dolutegravir,Major
+DDInter582,Dolutegravir,DDInter273,Calcium citrate,Major
+DDInter582,Dolutegravir,DDInter274,Calcium glubionate anhydrous,Major
+DDInter582,Dolutegravir,DDInter276,Calcium gluconate,Major
+DDInter582,Dolutegravir,DDInter278,Calcium lactate,Major
+DDInter582,Dolutegravir,DDInter279,Calcium Phosphate,Major
+DDInter975,Iron,DDInter582,Dolutegravir,Major
+DDInter380,Cimetidine,DDInter582,Dolutegravir,Minor
+DDInter393,Clarithromycin,DDInter582,Dolutegravir,Minor
+DDInter416,Clotrimazole,DDInter582,Dolutegravir,Minor
+DDInter513,Dexamethasone,DDInter582,Dolutegravir,Minor
+DDInter1005,Kaolin,DDInter582,Dolutegravir,Major
+DDInter1019,Lamivudine,DDInter1016,Lactitol,Moderate

@@ -1,0 +1,14 @@
+fastapi
+uvicorn
+joblib
+python-multipart
+numpy
+pandas
+scikit-learn
+easyocr
+opencv-python-headless
+Pillow
+twilio
+python-dotenv
+google-generativeai
+groq

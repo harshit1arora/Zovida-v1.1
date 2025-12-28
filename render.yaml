@@ -1,0 +1,33 @@
+services:
+  # Backend Service (FastAPI)
+  - type: web
+    name: zovida-backend
+    env: docker
+    dockerContext: backend
+    dockerfilePath: Dockerfile
+    plan: free
+    region: ohio
+    healthCheckPath: /
+    envVars:
+      - key: GROQ_API_KEY
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: TWILIO_ACCOUNT_SID
+        sync: false
+      - key: TWILIO_AUTH_TOKEN
+        sync: false
+      - key: TWILIO_PHONE_NUMBER
+        sync: false
+
+  # Frontend Service (React + Vite)
+  - type: web
+    name: zovida-frontend
+    env: static
+    rootDir: Zovida-main
+    buildCommand: npm install && npm run build
+    publishPath: dist
+    envVars:
+      - key: VITE_API_URL
+        value: https://zovida-backend.onrender.com # Update this with your actual backend URL after deployment
+
