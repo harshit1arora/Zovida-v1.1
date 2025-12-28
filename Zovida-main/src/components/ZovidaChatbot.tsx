@@ -5,7 +5,6 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { MessageSquare, Send, X, Bot, Loader2, Sparkles, Mic, Volume2, Paperclip, FileText, Check } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { initializeGroq, chatWithGroq } from "@/services/groqService";
 import { cn } from "@/lib/utils";
 import { endpoints } from "@/lib/api";
 import { toast } from "sonner";
@@ -247,11 +246,7 @@ const ZovidaChatbot = () => {
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
-      if (isKeySet) {
-        handleSend();
-      } else {
-        handleSetKey();
-      }
+      handleSend();
     }
   };
 
@@ -277,17 +272,6 @@ const ZovidaChatbot = () => {
                   </div>
                 </div>
                 <div className="flex items-center gap-1">
-                  {isKeySet && (
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="text-white hover:bg-white/20 h-8 w-8"
-                      onClick={handleClearKey}
-                      title="Change API Key"
-                    >
-                      <X size={14} className="rotate-45" />
-                    </Button>
-                  )}
                   <Button
                     variant="ghost"
                     size="icon"
@@ -439,8 +423,6 @@ const ZovidaChatbot = () => {
                     </Button>
                   </div>
                 </div>
-                  </>
-                )}
               </CardContent>
             </Card>
           </motion.div>
