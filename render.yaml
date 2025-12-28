@@ -9,6 +9,8 @@ services:
     region: ohio
     healthCheckPath: /
     envVars:
+      - key: PORT
+        value: 10000
       - key: GROQ_API_KEY
         sync: false
       - key: GEMINI_API_KEY

@@ -16,10 +16,20 @@ if GOOGLE_API_KEY:
     genai.configure(api_key=GOOGLE_API_KEY)
     logger.info("✅ Gemini Vision fallback configured.")
 
-# Load reader ONCE (important for performance)
-logger.info("⏳ Loading EasyOCR Reader...")
-reader = easyocr.Reader(['en'], gpu=False)
-logger.info("✅ EasyOCR Reader loaded.")
+# Global reader variable for lazy loading
+reader = None
+
+def get_reader():
+    global reader
+    if reader is None:
+        try:
+            logger.info("⏳ Initializing EasyOCR Reader...")
+            reader = easyocr.Reader(['en'], gpu=False)
+            logger.info("✅ EasyOCR Reader initialized.")
+        except Exception as e:
+            logger.error(f"❌ Failed to initialize EasyOCR Reader: {str(e)}")
+            raise e
+    return reader
 
 def extract_text_with_gemini(image_bytes):
     if not GOOGLE_API_KEY:
@@ -44,6 +54,9 @@ def extract_text(file):
         
         # 1. Try EasyOCR first
         try:
+            # Get reader (lazy initialization)
+            current_reader = get_reader()
+            
             # Convert bytes → PIL Image
             image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
             
@@ -51,7 +64,7 @@ def extract_text(file):
             image_np = np.array(image)
             
             # OCR
-            results = reader.readtext(image_np)
+            results = current_reader.readtext(image_np)
             
             # Join detected text
             text = " ".join([res[1] for res in results])
