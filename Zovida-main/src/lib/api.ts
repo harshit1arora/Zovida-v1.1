@@ -41,4 +41,8 @@ export const endpoints = {
     get: `${API_BASE_URL}/alerts`,
     report: `${API_BASE_URL}/alerts/report`,
   },
+  ml: {
+    chat: `${API_BASE_URL}/ml/chat`,
+    analyze: `${API_BASE_URL}/ml/analyze`,
+  },
 };

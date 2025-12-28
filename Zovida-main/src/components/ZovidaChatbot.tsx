@@ -39,26 +39,13 @@ const ZovidaChatbot = () => {
   ]);
   const [inputValue, setInputValue] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [apiKey, setApiKey] = useState("");
-  const [isKeySet, setIsKeySet] = useState(false);
   const [isListening, setIsListening] = useState(false);
   const [userContext, setUserContext] = useState<string>("");
   const scrollRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Load API key and user context from localStorage/backend on mount
+  // Load user context from backend on mount
   useEffect(() => {
-    const savedKey = localStorage.getItem("groq_api_key");
-    if (savedKey) {
-      try {
-        initializeGroq(savedKey);
-        setApiKey(savedKey);
-        setIsKeySet(true);
-      } catch (error) {
-        console.error("Failed to auto-initialize Groq:", error);
-      }
-    }
-
     const fetchUserContext = async () => {
       const userId = localStorage.getItem('zovida_user_id');
       if (!userId) return;
@@ -184,44 +171,9 @@ const ZovidaChatbot = () => {
     recognition.start();
   };
 
-  const handleSetKey = () => {
-    if (apiKey.trim()) {
-      try {
-        initializeGroq(apiKey);
-        localStorage.setItem("groq_api_key", apiKey);
-        setIsKeySet(true);
-        toast.success("Connected to Zovida AI!");
-      } catch (error) {
-        console.error("Failed to initialize Groq:", error);
-        toast.error("Failed to connect. Please check your API key.");
-      }
-    }
-  };
-
-  const handleClearKey = () => {
-    setIsKeySet(false);
-    setApiKey("");
-    localStorage.removeItem("groq_api_key");
-    toast.info("API Key cleared.");
-  };
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      if (file.size > 5 * 1024 * 1024) {
-        toast.error("File size too large. Please upload a file smaller than 5MB.");
-        return;
-      }
-      setSelectedFile(file);
-      toast.success(`File "${file.name}" ready for analysis.`);
-    }
-  };
-
   const handleSend = async (text?: string) => {
     const messageText = text || inputValue;
     if (!messageText.trim() && !selectedFile) return;
-
-    if (!isKeySet) return;
 
     const userMessage: Message = {
       id: Date.now().toString(),
@@ -247,83 +199,46 @@ const ZovidaChatbot = () => {
         content: m.text
       }));
 
-      // If file is present, add context to prompt
-      let finalPrompt = userMessage.text;
-      if (currentFile) {
-        finalPrompt += "\n\n[CONTEXT: User has uploaded a medical document/prescription. I should analyze it and provide guidance. If it's a prescription, I should suggest scanning it properly using the 'Scan' page.]";
+      const apiResponse = await fetch(endpoints.ml.chat, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: messageText + userContext,
+          history: history
+        }),
+      });
+
+      if (!apiResponse.ok) {
+        throw new Error('Failed to chat with AI via backend');
       }
 
-      if (userContext) {
-        finalPrompt += userContext;
+      const data = await apiResponse.json();
+      const aiResponse = data.response;
+
+      // Extract navigation tags if any
+      if (aiResponse.includes("[navigate:doctors]")) {
+        setTimeout(() => navigate("/doctors"), 2000);
+      } else if (aiResponse.includes("[navigate:sos]")) {
+        setTimeout(() => navigate("/sos"), 2000);
       }
 
-      const responseText = await chatWithGroq(finalPrompt, history);
+      // Clean response from tags for UI
+      const cleanResponse = aiResponse
+        .replace("[navigate:doctors]", "")
+        .replace("[navigate:sos]", "")
+        .trim();
 
-      // Check for navigation intent in AI response
-      if (responseText.toLowerCase().includes("[navigate:doctors]")) {
-        const cleanedText = responseText.replace(/\[navigate:doctors\]/gi, "");
-        const botMessage: Message = {
-          id: (Date.now() + 1).toString(),
-          role: "model",
-          text: cleanedText || "Redirecting you to our doctor consultation page...",
-        };
-        setMessages((prev) => [...prev, botMessage]);
-        speak(botMessage.text);
-        
-        // Wait for speech/reading before navigating
-        setTimeout(() => {
-          setIsOpen(false);
-          // Only navigate if we are not already on the page to avoid blankout
-          if (location.pathname !== '/doctors') {
-            navigate('/doctors');
-          }
-        }, 3000);
-      } else if (responseText.toLowerCase().includes("[navigate:sos]")) {
-        const cleanedText = responseText.replace(/\[navigate:sos\]/gi, "");
-        const botMessage: Message = {
-          id: (Date.now() + 1).toString(),
-          role: "model",
-          text: cleanedText || "I'm triggering the SOS emergency mode immediately. Please stay calm.",
-        };
-        setMessages((prev) => [...prev, botMessage]);
-        speak(botMessage.text);
-        setTimeout(() => {
-          setIsOpen(false);
-          if (location.pathname !== '/sos') {
-            navigate('/sos');
-          }
-        }, 2000);
-      } else if (responseText.toLowerCase().includes("[navigate:scan]") || (currentFile && responseText.toLowerCase().includes("scan"))) {
-        const cleanedText = responseText.replace(/\[navigate:scan\]/gi, "");
-        const botMessage: Message = {
-          id: (Date.now() + 1).toString(),
-          role: "model",
-          text: cleanedText || "I'll take you to the scanner to process this document properly.",
-        };
-        setMessages((prev) => [...prev, botMessage]);
-        speak(botMessage.text);
-        setTimeout(() => {
-          setIsOpen(false);
-          if (location.pathname !== '/scan') {
-            navigate('/scan');
-          }
-        }, 3000);
-      } else {
-        const botMessage: Message = {
-          id: (Date.now() + 1).toString(),
-          role: "model",
-          text: responseText,
-        };
-        setMessages((prev) => [...prev, botMessage]);
-        speak(responseText);
-      }
-    } catch (error) {
-      const errorMessage: Message = {
+      const botMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: "model",
-        text: "I'm sorry, I encountered an error connecting to the AI service. Please check your API key or try again later.",
+        text: cleanResponse,
       };
-      setMessages((prev) => [...prev, errorMessage]);
+
+      setMessages((prev) => [...prev, botMessage]);
+      speak(cleanResponse);
+    } catch (error) {
+      console.error("Chat error:", error);
+      toast.error("Failed to get response from Zovida AI.");
     } finally {
       setIsLoading(false);
     }
@@ -385,166 +300,145 @@ const ZovidaChatbot = () => {
               </CardHeader>
               
               <CardContent className="p-0">
-                {!isKeySet ? (
-                  <div className="p-6 flex flex-col items-center justify-center space-y-4 text-center h-[400px]">
-                    <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-full mb-2">
-                       <Bot size={32} className="text-blue-600 dark:text-blue-400" />
-                    </div>
-                    <h3 className="font-semibold text-lg">Setup Chatbot</h3>
-                    <p className="text-sm text-muted-foreground">
-                      Please enter your Groq API Key to start chatting with the medical assistant.
-                    </p>
-                    <div className="w-full space-y-2">
-                      <Input 
-                        type="password" 
-                        placeholder="Paste Groq API Key here..." 
-                        value={apiKey}
-                        onChange={(e) => setApiKey(e.target.value)}
-                        onKeyDown={handleKeyPress}
-                      />
-                      <Button 
-                        className="w-full bg-blue-600 hover:bg-blue-700 text-white" 
-                        onClick={handleSetKey}
-                        disabled={!apiKey.trim()}
+                <ScrollArea className="h-[350px] p-4" ref={scrollRef}>
+                  <div className="flex flex-col gap-3">
+                    {messages.map((msg) => (
+                      <div
+                        key={msg.id}
+                        className={cn(
+                          "flex w-full",
+                          msg.role === "user" ? "justify-end" : "justify-start"
+                        )}
                       >
-                        Start Chatting
-                      </Button>
-                    </div>
-                    <p className="text-xs text-muted-foreground mt-4">
-                      Your key is used locally and not stored on any server.
-                    </p>
-                  </div>
-                ) : (
-                  <>
-                    <ScrollArea className="h-[350px] p-4" ref={scrollRef}>
-                      <div className="flex flex-col gap-3">
-                        {messages.map((msg) => (
+                        <div className="flex flex-col gap-1 max-w-[80%]">
                           <div
-                            key={msg.id}
                             className={cn(
-                              "flex w-full",
-                              msg.role === "user" ? "justify-end" : "justify-start"
+                              "rounded-2xl px-4 py-2 text-sm shadow-sm relative group",
+                              msg.role === "user"
+                                ? "bg-blue-600 text-white rounded-tr-none"
+                                : "bg-secondary text-secondary-foreground rounded-tl-none"
                             )}
                           >
-                            <div className="flex flex-col gap-1 max-w-[80%]">
-                              <div
-                                className={cn(
-                                  "rounded-2xl px-4 py-2 text-sm shadow-sm relative group",
-                                  msg.role === "user"
-                                    ? "bg-blue-600 text-white rounded-tr-none"
-                                    : "bg-secondary text-secondary-foreground rounded-tl-none"
-                                )}
-                              >
-                                {msg.text}
-                                {msg.attachment && (
-                                  <div className="mt-2 p-2 bg-black/10 rounded-lg flex items-center gap-2 border border-white/10">
-                                    <FileText size={20} className={msg.role === "user" ? "text-white" : "text-blue-600"} />
-                                    <div className="overflow-hidden">
-                                      <p className="text-[10px] font-medium truncate">{msg.attachment.name}</p>
-                                      <p className="text-[8px] opacity-70">{(msg.attachment.type).split('/')[1].toUpperCase()}</p>
-                                    </div>
-                                    <Check size={14} className="ml-auto text-green-400" />
-                                  </div>
-                                )}
-                                {msg.role === "model" && (
-                                  <button
-                                    onClick={() => speak(msg.text)}
-                                    className="absolute -right-8 top-1 opacity-0 group-hover:opacity-100 transition-opacity p-1 text-muted-foreground hover:text-blue-600"
-                                    title="Read out loud"
-                                  >
-                                    <Volume2 size={14} />
-                                  </button>
-                                )}
+                            {msg.text}
+                            {msg.attachment && (
+                              <div className="mt-2 p-2 bg-black/10 rounded-lg flex items-center gap-2 border border-white/10">
+                                <FileText size={20} className={msg.role === "user" ? "text-white" : "text-blue-600"} />
+                                <div className="overflow-hidden">
+                                  <p className="text-[10px] font-medium truncate">{msg.attachment.name}</p>
+                                  <p className="text-[8px] opacity-70">{(msg.attachment.type).split('/')[1].toUpperCase()}</p>
+                                </div>
+                                <Check size={14} className="ml-auto text-green-400" />
                               </div>
-                            </div>
+                            )}
+                            {msg.role === "model" && (
+                              <button
+                                onClick={() => speak(msg.text)}
+                                className="absolute -right-8 top-1 opacity-0 group-hover:opacity-100 transition-opacity p-1 text-muted-foreground hover:text-blue-600"
+                                title="Read out loud"
+                              >
+                                <Volume2 size={14} />
+                              </button>
+                            )}
                           </div>
-                        ))}
-                        {isLoading && (
-                          <div className="flex justify-start">
-                            <div className="bg-secondary text-secondary-foreground rounded-2xl rounded-tl-none px-4 py-2 shadow-sm flex items-center gap-1">
-                              <Loader2 size={14} className="animate-spin" />
-                              <span className="text-xs">Thinking...</span>
-                            </div>
-                          </div>
-                        )}
+                        </div>
                       </div>
+                    ))}
+                    {isLoading && (
+                      <div className="flex justify-start">
+                        <div className="bg-secondary text-secondary-foreground rounded-2xl rounded-tl-none px-4 py-2 shadow-sm flex items-center gap-1">
+                          <Loader2 size={14} className="animate-spin" />
+                          <span className="text-xs">Thinking...</span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
 
-                      {messages.length === 1 && !isLoading && (
-                        <div className="mt-4 flex flex-wrap gap-2">
-                          {suggestedQuestions.map((q, i) => (
-                            <button
-                              key={i}
-                              onClick={() => handleSend(q)}
-                              className="text-[10px] bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200 rounded-full px-3 py-1 transition-colors text-left"
-                            >
-                              {q}
-                            </button>
-                          ))}
-                        </div>
-                      )}
-                    </ScrollArea>
-                    <div className="p-3 border-t bg-muted/20">
-                      {selectedFile && (
-                        <div className="mb-2 px-2 py-1 bg-blue-50 border border-blue-100 rounded-lg flex items-center justify-between animate-in fade-in slide-in-from-bottom-2">
-                          <div className="flex items-center gap-2 overflow-hidden">
-                            <FileText size={14} className="text-blue-600 shrink-0" />
-                            <span className="text-[10px] font-medium truncate text-blue-700">{selectedFile.name}</span>
-                          </div>
-                          <button onClick={() => setSelectedFile(null)} className="text-blue-400 hover:text-red-500">
-                            <X size={12} />
-                          </button>
-                        </div>
-                      )}
-                      <div className="relative flex items-center gap-2">
-                        <input
-                          type="file"
-                          ref={fileInputRef}
-                          onChange={handleFileChange}
-                          className="hidden"
-                          accept="image/*,.pdf,.doc,.docx"
-                        />
-                        <Button
-                           size="icon"
-                           variant="ghost"
-                           className="rounded-full h-8 w-8 text-muted-foreground hover:bg-muted hover:text-blue-600"
-                           onClick={() => fileInputRef.current?.click()}
-                           disabled={isLoading}
-                           title="Upload Report/Prescription"
+                  {messages.length === 1 && !isLoading && (
+                    <div className="mt-4 flex flex-wrap gap-2">
+                      {suggestedQuestions.map((q, i) => (
+                        <button
+                          key={i}
+                          onClick={() => handleSend(q)}
+                          className="text-[10px] bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200 rounded-full px-3 py-1 transition-colors text-left"
                         >
-                          <Paperclip size={18} />
-                        </Button>
-                        <Button
-                           size="icon"
-                           variant="ghost"
-                           className={cn(
-                             "rounded-full h-8 w-8 transition-colors",
-                             isListening ? "bg-red-100 text-red-600 animate-pulse" : "text-muted-foreground hover:bg-muted"
-                           )}
-                           onClick={startListening}
-                           disabled={isLoading}
-                           title="Voice Input"
-                        >
-                          <Mic size={18} />
-                        </Button>
-                        <Input
-                          value={inputValue}
-                          onChange={(e) => setInputValue(e.target.value)}
-                          onKeyDown={handleKeyPress}
-                          placeholder={selectedFile ? "Add a comment..." : "Ask about medications..."}
-                          className="pr-10 rounded-full border-blue-200 focus-visible:ring-blue-500"
-                          disabled={isLoading}
-                        />
-                        <Button
-                          size="icon"
-                          variant="ghost"
-                          className="absolute right-1 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-full h-8 w-8"
-                          onClick={() => handleSend()}
-                          disabled={isLoading || (!inputValue.trim() && !selectedFile)}
-                        >
-                          <Send size={16} />
-                        </Button>
-                      </div>
+                          {q}
+                        </button>
+                      ))}
                     </div>
+                  )}
+                </ScrollArea>
+                <div className="p-3 border-t bg-muted/20">
+                  {selectedFile && (
+                    <div className="mb-2 px-2 py-1 bg-blue-50 border border-blue-100 rounded-lg flex items-center justify-between animate-in fade-in slide-in-from-bottom-2">
+                      <div className="flex items-center gap-2 overflow-hidden">
+                        <FileText size={14} className="text-blue-600 shrink-0" />
+                        <span className="text-[10px] font-medium truncate text-blue-700">{selectedFile.name}</span>
+                      </div>
+                      <button onClick={() => setSelectedFile(null)} className="text-blue-400 hover:text-red-500">
+                        <X size={12} />
+                      </button>
+                    </div>
+                  )}
+                  <div className="relative flex items-center gap-2">
+                    <input
+                      type="file"
+                      ref={fileInputRef}
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          if (file.size > 5 * 1024 * 1024) {
+                            toast.error("File size too large. Please upload a file smaller than 5MB.");
+                            return;
+                          }
+                          setSelectedFile(file);
+                          toast.success(`File "${file.name}" ready for analysis.`);
+                        }
+                      }}
+                      className="hidden"
+                      accept="image/*,.pdf,.doc,.docx"
+                    />
+                    <Button
+                       size="icon"
+                       variant="ghost"
+                       className="rounded-full h-8 w-8 text-muted-foreground hover:bg-muted hover:text-blue-600"
+                       onClick={() => fileInputRef.current?.click()}
+                       disabled={isLoading}
+                       title="Upload Report/Prescription"
+                    >
+                      <Paperclip size={18} />
+                    </Button>
+                    <Button
+                       size="icon"
+                       variant="ghost"
+                       className={cn(
+                         "rounded-full h-8 w-8 transition-colors",
+                         isListening ? "bg-red-100 text-red-600 animate-pulse" : "text-muted-foreground hover:bg-muted"
+                       )}
+                       onClick={startListening}
+                       disabled={isLoading}
+                       title="Voice Input"
+                    >
+                      <Mic size={18} />
+                    </Button>
+                    <Input
+                      value={inputValue}
+                      onChange={(e) => setInputValue(e.target.value)}
+                      onKeyDown={handleKeyPress}
+                      placeholder={selectedFile ? "Add a comment..." : "Ask about medications..."}
+                      className="pr-10 rounded-full border-blue-200 focus-visible:ring-blue-500"
+                      disabled={isLoading}
+                    />
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      className="absolute right-1 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-full h-8 w-8"
+                      onClick={() => handleSend()}
+                      disabled={isLoading || (!inputValue.trim() && !selectedFile)}
+                    >
+                      <Send size={16} />
+                    </Button>
+                  </div>
+                </div>
                   </>
                 )}
               </CardContent>

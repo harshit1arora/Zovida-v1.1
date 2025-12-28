@@ -67,71 +67,20 @@ const ManualEntryModal = ({ isOpen, onClose }: ManualEntryModalProps) => {
       }
 
       // 2. Get detailed AI analysis for the UI
-      const prompt = `Analyze these medications for components, interactions, and safety: ${drugs.join(', ')}. 
-      Return ONLY a JSON object following this interface:
-      {
-        "id": "manual-${Date.now()}",
-        "timestamp": "${new Date().toISOString()}",
-        "medicines": [
-          { "id": "1", "name": "Drug Name", "dosage": "Standard Dosage", "frequency": "Standard Frequency", "components": ["Component 1", "Component 2"] }
-        ],
-        "overallRisk": "safe" | "caution" | "danger",
-        "interactions": [
-          { "drug1": "Drug A", "drug2": "Drug B", "severity": "danger", "description": "Interaction detail", "recommendation": "What to do" }
-        ],
-        "aiExplanation": "Brief overall summary (medical terminology)",
-        "simpleExplanation": "ELI12 version - extremely simple language, no jargon",
-        "doctorRating": { "totalReviews": 100, "averageScore": 4.5, "safeRatings": 80, "cautionRatings": 15, "dangerRatings": 5 },
-        "recommendations": ["Recommendation 1", "Recommendation 2"],
-        "ocrConfidence": "High",
-        "ocrConfidenceReason": "Manually entered by user, high clarity",
-        "safetyTimeline": {
-          "urgency": "Immediate" | "Soon" | "Routine",
-          "message": "When should the user act on this analysis?"
-        },
-        "sideEffects": ["Common side effect 1", "Common side effect 2"],
-        "emergencySigns": ["Sign 1 - seek immediate help if this happens"],
-        "crossPrescription": {
-          "detected": true,
-          "sourceCount": 2,
-          "message": "Found medications likely from different doctors or prescriptions."
-        },
-        "isCaregiverMode": ${isCaregiverMode},
-        "clinicalStance": {
-          "interpretation": "Review" | "Monitor" | "Caution",
-          "stance": "How clinicians usually interpret this type of interaction",
-          "insiderProcess": "Brief detail about clinical process/guidelines used for this stance"
-        },
-        "lifestyleWarnings": [
-          { 
-            "type": "alcohol" | "food" | "supplement" | "lifestyle", 
-            "warning": "Specific substance/activity", 
-            "impact": "What happens if combined",
-            "action": "avoid" | "eat" | "monitor"
-          }
-        ]
+      const apiResponse = await fetch(endpoints.ml.analyze, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          drugs, 
+          is_caregiver_mode: isCaregiverMode 
+        }),
+      });
+
+      if (!apiResponse.ok) {
+        throw new Error('Failed to analyze medications via backend');
       }
-      
-      For 'lifestyleWarnings', make sure to include an 'action' field for each item:
-      - 'avoid' for things to completely avoid (like alcohol or grapefruit with certain drugs)
-      - 'eat' for beneficial things (like taking with food or specific vitamins)
-      - 'monitor' for things that need careful observation.
-      
-      If multiple drugs are provided, analyze if they seem to come from different therapeutic contexts (e.g., a heart medicine and a separate dental prescription) and flag it in crossPrescription.
-      Make sure to identify if a drug like 'Dolo 650' contains Paracetamol/Acetaminophen and list it in components.
-      If common brand names are used, expand them to their active ingredients.
-      For 'safetyTimeline', use 'Immediate' for severe interactions, 'Soon' for caution, and 'Routine' for safe.`;
 
-      const response = await chatWithGroq(prompt);
-      
-      // Extract JSON from response if it contains markdown
-      const jsonStr = response.includes('```json') 
-        ? response.split('```json')[1].split('```')[0].trim()
-        : response.includes('{') 
-          ? response.substring(response.indexOf('{'), response.lastIndexOf('}') + 1)
-          : response;
-
-      const result: AnalysisResult = JSON.parse(jsonStr);
+      const result: AnalysisResult = await apiResponse.json();
       setResult(result);
       toast.success("Analysis complete!");
       onClose();
