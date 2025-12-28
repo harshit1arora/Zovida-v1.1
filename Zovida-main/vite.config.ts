@@ -16,6 +16,9 @@ export default defineConfig(({ mode }) => ({
     VitePWA({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'robots.txt', 'placeholder.svg'],
+      workbox: {
+        maximumFileSizeToCacheInBytes: 4000000, // Increase to 4MB for large chunks
+      },
       manifest: {
         name: 'Zovida',
         short_name: 'Zovida',
