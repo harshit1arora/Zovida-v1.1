@@ -1,14 +1,36 @@
 
 import os
 import json
+import logging
 from groq import Groq
+import google.generativeai as genai
 from dotenv import load_dotenv
 
 load_dotenv()
 
-# Groq API Key
+# Setup logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+# API Keys
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
-client = Groq(api_key=GROQ_API_KEY)
+GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
+
+# Clients
+client = None
+if GROQ_API_KEY:
+    try:
+        client = Groq(api_key=GROQ_API_KEY)
+        logger.info("✅ Groq client initialized for lifestyle service.")
+    except Exception as e:
+        logger.error(f"❌ Failed to initialize Groq for lifestyle: {str(e)}")
+
+if GOOGLE_API_KEY:
+    try:
+        genai.configure(api_key=GOOGLE_API_KEY)
+        logger.info("✅ Gemini fallback configured for lifestyle service.")
+    except Exception as e:
+        logger.error(f"❌ Failed to configure Gemini for lifestyle: {str(e)}")
 
 DRUG_LIFESTYLE_INTERACTIONS = {
     "Aspirin": [
@@ -58,79 +80,70 @@ def get_lifestyle_warnings(drugs):
     if not drugs:
         return []
 
-    # Try to get from Groq first
-    try:
-        drug_list_str = ", ".join(drugs)
-        prompt = f"""
-        Analyze the following drugs and provide food and lifestyle recommendations (what to eat vs what to avoid/monitor).
-        Drugs: {drug_list_str}
+    prompt = f"""
+    Analyze the following drugs and provide food and lifestyle recommendations (what to eat vs what to avoid/monitor).
+    Drugs: {", ".join(drugs)}
 
-        Return ONLY a JSON array of objects with the following structure:
-        {{
-            "type": "food" | "alcohol" | "supplement" | "lifestyle",
-            "warning": "Short descriptive title (e.g., 'Avoid Grapefruit')",
-            "impact": "Brief explanation of the interaction or benefit",
-            "action": "avoid" | "eat" | "monitor"
-        }}
+    Return ONLY a JSON array of objects with the following structure:
+    {{
+        "type": "food" | "alcohol" | "supplement" | "lifestyle",
+        "warning": "Short descriptive title (e.g., 'Avoid Grapefruit')",
+        "impact": "Brief explanation of the interaction or benefit",
+        "action": "avoid" | "eat" | "monitor"
+    }}
 
-        Be specific for each drug. Focus on clinically significant interactions.
-        If a drug has no specific lifestyle interactions, return an empty list for that drug.
-        Ensure the output is valid JSON and nothing else.
-        """
+    Be specific for each drug. Focus on clinically significant interactions.
+    If a drug has no specific lifestyle interactions, return an empty list for that drug.
+    Ensure the output is valid JSON and nothing else.
+    """
 
-        completion = client.chat.completions.create(
-            model="llama-3.3-70b-versatile",
-            messages=[
-                {"role": "system", "content": "You are a medical assistant providing pharmacological lifestyle advice. Return only JSON."},
-                {"role": "user", "content": prompt}
-            ],
-            temperature=0.1,
-            response_format={ "type": "json_object" }
-        )
+    # 1. Try Groq first
+    if client:
+        try:
+            completion = client.chat.completions.create(
+                model="llama-3.3-70b-versatile",
+                messages=[
+                    {"role": "system", "content": "You are a medical assistant providing pharmacological lifestyle advice. Return only JSON."},
+                    {"role": "user", "content": prompt}
+                ],
+                temperature=0.1,
+                response_format={ "type": "json_object" }
+            )
 
-        response_content = completion.choices[0].message.content
-        data = json.loads(response_content)
-        
-        all_warnings = []
-        # Handle different JSON structures Groq might return
-        if isinstance(data, list):
-            all_warnings = data
-        elif isinstance(data, dict):
-            # Check if it's a nested dict like {"Aspirin": [...], "Metformin": [...]}
-            # or wrapped like {"recommendations": [...]}
-            for key, value in data.items():
-                if isinstance(value, list):
-                    all_warnings.extend(value)
-                elif isinstance(value, dict):
-                    # One more level of nesting just in case
-                    for sub_key, sub_value in value.items():
-                        if isinstance(sub_value, list):
-                            all_warnings.extend(sub_value)
-        
-        if all_warnings:
-            # Deduplicate by warning title
-            seen = set()
-            unique_warnings = []
-            for w in all_warnings:
-                if w.get('warning') not in seen:
-                    unique_warnings.append(w)
-                    seen.add(w.get('warning'))
-            return unique_warnings
+            response_content = completion.choices[0].message.content
+            data = json.loads(response_content)
+            
+            # Handle different JSON structures Groq might return
+            if isinstance(data, list):
+                return data
+            elif isinstance(data, dict):
+                # If wrapped in a key like "recommendations" or "warnings"
+                for key in ["recommendations", "warnings", "lifestyle", "data"]:
+                    if key in data and isinstance(data[key], list):
+                        return data[key]
+                # If it's a list of objects but at the root level of the dict (unexpected but possible)
+                return [data] if "type" in data else []
+        except Exception as e:
+            logger.error(f"Groq Lifestyle Error: {str(e)}")
+            # Fall through to Gemini
 
-    except Exception as e:
-        print(f"Error fetching from Groq: {e}")
+    # 2. Try Gemini fallback
+    if GOOGLE_API_KEY:
+        try:
+            model = genai.GenerativeModel('gemini-1.5-flash')
+            response = model.generate_content(prompt)
+            text = response.text
+            start = text.find('[')
+            end = text.rfind(']') + 1
+            if start != -1 and end != -1:
+                return json.loads(text[start:end])
+        except Exception as e:
+            logger.error(f"Gemini Lifestyle Error: {str(e)}")
 
-    # Fallback to local dictionary
-    warnings = []
-    seen_warnings = set()
-    
+    # 3. Static fallback from local dictionary if AI fails
+    all_warnings = []
     for drug in drugs:
-        drug_name = drug.title()
-        if drug_name in DRUG_LIFESTYLE_INTERACTIONS:
-            for interaction in DRUG_LIFESTYLE_INTERACTIONS[drug_name]:
-                warning_key = f"{interaction['type']}:{interaction['warning']}"
-                if warning_key not in seen_warnings:
-                    warnings.append(interaction)
-                    seen_warnings.add(warning_key)
-                    
-    return warnings
+        if drug.title() in DRUG_LIFESTYLE_INTERACTIONS:
+            all_warnings.extend(DRUG_LIFESTYLE_INTERACTIONS[drug.title()])
+    
+    return all_warnings
