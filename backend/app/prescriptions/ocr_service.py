@@ -1,14 +1,19 @@
-import easyocr
-import numpy as np
-from PIL import Image
-import io
 import os
 import logging
+import io
+from PIL import Image
 import google.generativeai as genai
+from azure.ai.vision.imageanalysis import ImageAnalysisClient
+from azure.ai.vision.imageanalysis.models import VisualFeatures
+from azure.core.credentials import AzureKeyCredential
 
 # Setup logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+# Azure AI Vision Credentials
+AZURE_VISION_KEY = os.getenv("AZURE_VISION_KEY")
+AZURE_VISION_ENDPOINT = os.getenv("AZURE_VISION_ENDPOINT", "https://zovida-foundry.cognitiveservices.azure.com/")
 
 # Load API key for Gemini Fallback
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
@@ -16,20 +21,37 @@ if GOOGLE_API_KEY:
     genai.configure(api_key=GOOGLE_API_KEY)
     logger.info("✅ Gemini Vision fallback configured.")
 
-# Global reader variable for lazy loading
-reader = None
+def extract_text_with_azure(image_bytes):
+    """Extract text using Azure AI Vision (Computer Vision)"""
+    try:
+        # Create a client
+        client = ImageAnalysisClient(
+            endpoint=AZURE_VISION_ENDPOINT,
+            credential=AzureKeyCredential(AZURE_VISION_KEY)
+        )
 
-def get_reader():
-    global reader
-    if reader is None:
-        try:
-            logger.info("⏳ Initializing EasyOCR Reader...")
-            reader = easyocr.Reader(['en'], gpu=False)
-            logger.info("✅ EasyOCR Reader initialized.")
-        except Exception as e:
-            logger.error(f"❌ Failed to initialize EasyOCR Reader: {str(e)}")
-            raise e
-    return reader
+        # Analyze the image
+        result = client.analyze(
+            image_data=image_bytes,
+            visual_features=[VisualFeatures.READ]
+        )
+
+        # Extract detected text
+        if result.read is not None:
+            extracted_lines = []
+            for block in result.read.blocks:
+                for line in block.lines:
+                    extracted_lines.append(line.text)
+            
+            text = " ".join(extracted_lines)
+            if text.strip():
+                logger.info("✅ Text extracted using Azure AI Vision.")
+                return text.strip()
+        
+        return None
+    except Exception as e:
+        logger.error(f"Azure AI Vision Error: {str(e)}")
+        return None
 
 def extract_text_with_gemini(image_bytes):
     if not GOOGLE_API_KEY:
@@ -52,28 +74,10 @@ def extract_text(file):
         # Read file bytes
         image_bytes = file.file.read()
         
-        # 1. Try EasyOCR first
-        try:
-            # Get reader (lazy initialization)
-            current_reader = get_reader()
-            
-            # Convert bytes → PIL Image
-            image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
-            
-            # Convert PIL → NumPy array
-            image_np = np.array(image)
-            
-            # OCR
-            results = current_reader.readtext(image_np)
-            
-            # Join detected text
-            text = " ".join([res[1] for res in results])
-            
-            if text.strip():
-                logger.info("✅ Text extracted using EasyOCR.")
-                return text.strip()
-        except Exception as e:
-            logger.warning(f"EasyOCR failed, trying fallback: {str(e)}")
+        # 1. Try Azure AI Vision first
+        azure_text = extract_text_with_azure(image_bytes)
+        if azure_text:
+            return azure_text
 
         # 2. Try Gemini fallback
         gemini_text = extract_text_with_gemini(image_bytes)

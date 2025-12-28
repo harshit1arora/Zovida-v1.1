@@ -11,6 +11,10 @@ services:
     envVars:
       - key: PORT
         value: 10000
+      - key: AZURE_VISION_KEY
+        sync: false
+      - key: AZURE_VISION_ENDPOINT
+        value: https://zovida-foundry.cognitiveservices.azure.com/
       - key: GROQ_API_KEY
         sync: false
       - key: GEMINI_API_KEY

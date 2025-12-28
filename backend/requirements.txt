@@ -5,8 +5,7 @@ python-multipart
 numpy
 pandas
 scikit-learn
-easyocr
-opencv-python-headless
+azure-ai-vision-imageanalysis
 Pillow
 twilio
 python-dotenv
