@@ -21,11 +21,11 @@ services:
         sync: false
 
   # Frontend Service (React + Vite)
-  - type: static_site
+  - type: web
     name: zovida-frontend
-    rootDir: Zovida-main
-    buildCommand: npm install && npm run build
-    publishPath: dist
+    env: static
+    buildCommand: cd Zovida-main && npm install && npm run build
+    publishPath: Zovida-main/dist
     envVars:
       - key: VITE_API_URL
-        value: https://zovida-backend.onrender.com # Update this with your actual backend URL after deployment
+        value: https://zovida-backend.onrender.com
