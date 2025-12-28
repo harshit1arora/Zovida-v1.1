@@ -23,7 +23,7 @@ services:
   # Frontend Service (React + Vite)
   - type: web
     name: zovida-frontend
-    env: static
+    runtime: static
     rootDir: Zovida-main
     buildCommand: npm install && npm run build
     publishPath: dist
