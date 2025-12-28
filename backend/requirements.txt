@@ -9,6 +9,6 @@ azure-ai-vision-imageanalysis
 Pillow
 twilio
 python-dotenv
-google-generativeai
+google-genai
 groq
 email-validator

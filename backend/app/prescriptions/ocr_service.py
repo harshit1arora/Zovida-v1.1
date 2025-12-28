@@ -2,7 +2,8 @@ import os
 import logging
 import io
 from PIL import Image
-import google.generativeai as genai
+from google import genai
+from google.genai import types
 from azure.ai.vision.imageanalysis import ImageAnalysisClient
 from azure.ai.vision.imageanalysis.models import VisualFeatures
 from azure.core.credentials import AzureKeyCredential
@@ -22,10 +23,11 @@ AZURE_VISION_REGION = os.getenv("AZURE_VISION_REGION", "centralindia")
 
 # Load API key for Gemini Fallback
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
+gemini_client = None
 if GOOGLE_API_KEY:
     try:
-        genai.configure(api_key=GOOGLE_API_KEY)
-        logger.info("✅ Gemini Vision fallback configured.")
+        gemini_client = genai.Client(api_key=GOOGLE_API_KEY)
+        logger.info("✅ Gemini Vision (new SDK) fallback configured.")
     except Exception as e:
         logger.error(f"❌ Failed to configure Gemini: {str(e)}")
 
@@ -67,17 +69,18 @@ def extract_text_with_azure(image_bytes):
         return None
 
 def extract_text_with_gemini(image_bytes):
-    if not GOOGLE_API_KEY:
-        logger.warning("⚠️ Gemini API key missing, skipping fallback.")
+    if not gemini_client:
+        logger.warning("⚠️ Gemini client not initialized, skipping fallback.")
         return None
     
     try:
-        model = genai.GenerativeModel('gemini-1.5-flash')
-        content = [
-            "Extract all text from this medical prescription. Only return the text found, no explanations.",
-            {"mime_type": "image/jpeg", "data": image_bytes}
-        ]
-        response = model.generate_content(content)
+        response = gemini_client.models.generate_content(
+            model='gemini-1.5-flash',
+            contents=[
+                "Extract all text from this medical prescription. Only return the text found, no explanations.",
+                types.Part.from_bytes(data=image_bytes, mime_type='image/jpeg'),
+            ]
+        )
         if response and response.text:
             return response.text.strip()
         return None

@@ -3,7 +3,7 @@ import os
 import json
 import logging
 from groq import Groq
-import google.generativeai as genai
+from google import genai
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -25,10 +25,11 @@ if GROQ_API_KEY:
     except Exception as e:
         logger.error(f"❌ Failed to initialize Groq for lifestyle: {str(e)}")
 
+gemini_client = None
 if GOOGLE_API_KEY:
     try:
-        genai.configure(api_key=GOOGLE_API_KEY)
-        logger.info("✅ Gemini fallback configured for lifestyle service.")
+        gemini_client = genai.Client(api_key=GOOGLE_API_KEY)
+        logger.info("✅ Gemini (new SDK) configured for lifestyle service.")
     except Exception as e:
         logger.error(f"❌ Failed to configure Gemini for lifestyle: {str(e)}")
 
@@ -128,10 +129,12 @@ def get_lifestyle_warnings(drugs):
             # Fall through to Gemini
 
     # 2. Try Gemini fallback
-    if GOOGLE_API_KEY:
+    if gemini_client:
         try:
-            model = genai.GenerativeModel('gemini-1.5-flash')
-            response = model.generate_content(prompt)
+            response = gemini_client.models.generate_content(
+                model='gemini-1.5-flash',
+                contents=prompt
+            )
             text = response.text
             start = text.find('[')
             end = text.rfind(']') + 1

@@ -3,7 +3,7 @@ import os
 import json
 import logging
 from groq import Groq
-import google.generativeai as genai
+from google import genai
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -25,12 +25,13 @@ if GROQ_API_KEY:
     except Exception as e:
         logger.error(f"❌ Failed to initialize Groq: {str(e)}")
 
+gemini_client = None
 if GOOGLE_API_KEY:
     try:
-        genai.configure(api_key=GOOGLE_API_KEY)
-        logger.info("✅ Gemini fallback configured for analysis.")
+        gemini_client = genai.Client(api_key=GOOGLE_API_KEY)
+        logger.info("✅ Gemini (new SDK) configured for analysis.")
     except Exception as e:
-        logger.error(f"❌ Failed to configure Gemini for analysis: {str(e)}")
+        logger.error(f"❌ Failed to configure Gemini: {str(e)}")
 
 def chat_with_ai(message: str, history: list = None):
     if not GROQ_API_KEY and not GOOGLE_API_KEY:
@@ -72,11 +73,13 @@ def chat_with_ai(message: str, history: list = None):
             # Fall through to Gemini
 
     # Try Gemini fallback
-    if GOOGLE_API_KEY:
+    if gemini_client:
         try:
-            model = genai.GenerativeModel('gemini-1.5-flash')
             full_prompt = f"{system_prompt}\n\nUser: {message}"
-            response = model.generate_content(full_prompt)
+            response = gemini_client.models.generate_content(
+                model='gemini-1.5-flash',
+                contents=full_prompt
+            )
             return response.text or "I couldn't generate a response via Gemini."
         except Exception as e:
             logger.error(f"Gemini Chat Error: {str(e)}")
@@ -138,16 +141,24 @@ def analyze_medications(drugs: list, is_caregiver_mode: bool = False):
                 ],
                 temperature=0.1,
             )
-            return json.loads(completion.choices[0].message.content)
+            content = completion.choices[0].message.content
+            # Robust JSON extraction
+            start = content.find('{')
+            end = content.rfind('}') + 1
+            if start != -1 and end != -1:
+                return json.loads(content[start:end])
+            return json.loads(content)
         except Exception as e:
             logger.error(f"Groq Analysis Error: {str(e)}")
             # Fall through to Gemini
 
     # Try Gemini fallback
-    if GOOGLE_API_KEY:
+    if gemini_client:
         try:
-            model = genai.GenerativeModel('gemini-1.5-flash')
-            response = model.generate_content(prompt)
+            response = gemini_client.models.generate_content(
+                model='gemini-1.5-flash',
+                contents=prompt
+            )
             # Find JSON in the response
             text = response.text
             start = text.find('{')
