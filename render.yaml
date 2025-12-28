@@ -25,7 +25,7 @@ services:
     name: zovida-frontend
     env: static
     buildCommand: cd Zovida-main && npm install && npm run build
-    publishPath: Zovida-main/dist
+    staticPublishPath: Zovida-main/dist
     envVars:
       - key: VITE_API_URL
         value: https://zovida-backend.onrender.com
