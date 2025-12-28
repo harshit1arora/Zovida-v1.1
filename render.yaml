@@ -30,4 +30,3 @@ services:
     envVars:
       - key: VITE_API_URL
         value: https://zovida-backend.onrender.com # Update this with your actual backend URL after deployment
-
