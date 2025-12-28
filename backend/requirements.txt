@@ -11,3 +11,4 @@ twilio
 python-dotenv
 google-generativeai
 groq
+email-validator
