@@ -21,9 +21,8 @@ services:
         sync: false
 
   # Frontend Service (React + Vite)
-  - type: web
+  - type: static_site
     name: zovida-frontend
-    runtime: static
     rootDir: Zovida-main
     buildCommand: npm install && npm run build
     publishPath: dist
