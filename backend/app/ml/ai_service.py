@@ -12,29 +12,46 @@ load_dotenv()
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# API Keys
-GROQ_API_KEY = os.getenv("GROQ_API_KEY")
-GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
+# API Keys and Clients
+def get_groq_config():
+    return os.getenv("GROQ_API_KEY")
 
-# Clients
-client = None
-if GROQ_API_KEY:
-    try:
-        client = Groq(api_key=GROQ_API_KEY)
-        logger.info("✅ Groq client initialized.")
-    except Exception as e:
-        logger.error(f"❌ Failed to initialize Groq: {str(e)}")
+def get_google_config():
+    return os.getenv("GOOGLE_API_KEY")
+
+groq_client = None
+def init_groq():
+    global groq_client
+    api_key = get_groq_config()
+    if api_key and not groq_client:
+        try:
+            groq_client = Groq(api_key=api_key)
+            logger.info("✅ Groq client initialized.")
+        except Exception as e:
+            logger.error(f"❌ Failed to initialize Groq: {str(e)}")
+    return groq_client
 
 gemini_client = None
-if GOOGLE_API_KEY:
-    try:
-        gemini_client = genai.Client(api_key=GOOGLE_API_KEY)
-        logger.info("✅ Gemini (new SDK) configured for analysis.")
-    except Exception as e:
-        logger.error(f"❌ Failed to configure Gemini: {str(e)}")
+def init_gemini():
+    global gemini_client
+    api_key = get_google_config()
+    if api_key and not gemini_client:
+        try:
+            gemini_client = genai.Client(api_key=api_key)
+            logger.info("✅ Gemini (new SDK) configured for analysis.")
+        except Exception as e:
+            logger.error(f"❌ Failed to configure Gemini: {str(e)}")
+    return gemini_client
+
+# Initial attempt
+init_groq()
+init_gemini()
 
 def chat_with_ai(message: str, history: list = None):
-    if not GROQ_API_KEY and not GOOGLE_API_KEY:
+    groq_c = init_groq()
+    gemini_c = init_gemini()
+    
+    if not groq_c and not gemini_c:
         return "ERROR: No AI service (Groq or Gemini) configured on server."
 
     if history is None:
@@ -52,7 +69,7 @@ def chat_with_ai(message: str, history: list = None):
     """
 
     # Try Groq first
-    if client:
+    if groq_c:
         try:
             messages = [
                 {"role": "system", "content": system_prompt},
@@ -60,7 +77,7 @@ def chat_with_ai(message: str, history: list = None):
                 {"role": "user", "content": message}
             ]
 
-            completion = client.chat.completions.create(
+            completion = groq_c.chat.completions.create(
                 model="llama-3.3-70b-versatile",
                 messages=messages,
                 temperature=0.5,
@@ -73,10 +90,10 @@ def chat_with_ai(message: str, history: list = None):
             # Fall through to Gemini
 
     # Try Gemini fallback
-    if gemini_client:
+    if gemini_c:
         try:
             full_prompt = f"{system_prompt}\n\nUser: {message}"
-            response = gemini_client.models.generate_content(
+            response = gemini_c.models.generate_content(
                 model='gemini-1.5-flash',
                 contents=full_prompt
             )
@@ -87,7 +104,10 @@ def chat_with_ai(message: str, history: list = None):
     return "ERROR: All AI services failed to generate a response."
 
 def analyze_medications(drugs: list, is_caregiver_mode: bool = False):
-    if not GROQ_API_KEY and not GOOGLE_API_KEY:
+    groq_c = init_groq()
+    gemini_c = init_gemini()
+    
+    if not groq_c and not gemini_c:
         return {"error": "No AI service (Groq or Gemini) configured on server."}
 
     prompt = f"""Analyze these medications for components, interactions, and safety: {', '.join(drugs)}. 
@@ -131,9 +151,9 @@ def analyze_medications(drugs: list, is_caregiver_mode: bool = False):
     }}"""
 
     # Try Groq first
-    if client:
+    if groq_c:
         try:
-            completion = client.chat.completions.create(
+            completion = groq_c.chat.completions.create(
                 model="llama-3.3-70b-versatile",
                 messages=[
                     {"role": "system", "content": "You are a medical analysis AI. Return only JSON."},
@@ -153,9 +173,9 @@ def analyze_medications(drugs: list, is_caregiver_mode: bool = False):
             # Fall through to Gemini
 
     # Try Gemini fallback
-    if gemini_client:
+    if gemini_c:
         try:
-            response = gemini_client.models.generate_content(
+            response = gemini_c.models.generate_content(
                 model='gemini-1.5-flash',
                 contents=prompt
             )

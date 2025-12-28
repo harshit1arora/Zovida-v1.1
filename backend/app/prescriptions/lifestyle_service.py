@@ -12,26 +12,40 @@ load_dotenv()
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# API Keys
-GROQ_API_KEY = os.getenv("GROQ_API_KEY")
-GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
+# API Keys and Clients
+def get_groq_config():
+    return os.getenv("GROQ_API_KEY")
 
-# Clients
-client = None
-if GROQ_API_KEY:
-    try:
-        client = Groq(api_key=GROQ_API_KEY)
-        logger.info("✅ Groq client initialized for lifestyle service.")
-    except Exception as e:
-        logger.error(f"❌ Failed to initialize Groq for lifestyle: {str(e)}")
+def get_google_config():
+    return os.getenv("GOOGLE_API_KEY")
+
+groq_client = None
+def init_groq():
+    global groq_client
+    api_key = get_groq_config()
+    if api_key and not groq_client:
+        try:
+            groq_client = Groq(api_key=api_key)
+            logger.info("✅ Groq client initialized for lifestyle service.")
+        except Exception as e:
+            logger.error(f"❌ Failed to initialize Groq for lifestyle: {str(e)}")
+    return groq_client
 
 gemini_client = None
-if GOOGLE_API_KEY:
-    try:
-        gemini_client = genai.Client(api_key=GOOGLE_API_KEY)
-        logger.info("✅ Gemini (new SDK) configured for lifestyle service.")
-    except Exception as e:
-        logger.error(f"❌ Failed to configure Gemini for lifestyle: {str(e)}")
+def init_gemini():
+    global gemini_client
+    api_key = get_google_config()
+    if api_key and not gemini_client:
+        try:
+            gemini_client = genai.Client(api_key=api_key)
+            logger.info("✅ Gemini (new SDK) configured for lifestyle service.")
+        except Exception as e:
+            logger.error(f"❌ Failed to configure Gemini for lifestyle: {str(e)}")
+    return gemini_client
+
+# Initial attempt
+init_groq()
+init_gemini()
 
 DRUG_LIFESTYLE_INTERACTIONS = {
     "Aspirin": [
@@ -99,9 +113,10 @@ def get_lifestyle_warnings(drugs):
     """
 
     # 1. Try Groq first
-    if client:
+    groq_c = init_groq()
+    if groq_c:
         try:
-            completion = client.chat.completions.create(
+            completion = groq_c.chat.completions.create(
                 model="llama-3.3-70b-versatile",
                 messages=[
                     {"role": "system", "content": "You are a medical assistant providing pharmacological lifestyle advice. Return only JSON."},
@@ -129,9 +144,10 @@ def get_lifestyle_warnings(drugs):
             # Fall through to Gemini
 
     # 2. Try Gemini fallback
-    if gemini_client:
+    gemini_c = init_gemini()
+    if gemini_c:
         try:
-            response = gemini_client.models.generate_content(
+            response = gemini_c.models.generate_content(
                 model='gemini-1.5-flash',
                 contents=prompt
             )

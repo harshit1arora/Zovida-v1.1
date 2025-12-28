@@ -17,31 +17,44 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # Azure AI Vision Credentials
-AZURE_VISION_KEY = os.getenv("AZURE_VISION_KEY")
-AZURE_VISION_ENDPOINT = os.getenv("AZURE_VISION_ENDPOINT", "https://zovida-foundry.cognitiveservices.azure.com/")
-AZURE_VISION_REGION = os.getenv("AZURE_VISION_REGION", "centralindia")
+def get_azure_config():
+    return {
+        "key": os.getenv("AZURE_VISION_KEY"),
+        "endpoint": os.getenv("AZURE_VISION_ENDPOINT", "https://zovida-foundry.cognitiveservices.azure.com/"),
+        "region": os.getenv("AZURE_VISION_REGION", "centralindia")
+    }
 
 # Load API key for Gemini Fallback
-GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
+def get_google_config():
+    return os.getenv("GOOGLE_API_KEY")
+
 gemini_client = None
-if GOOGLE_API_KEY:
-    try:
-        gemini_client = genai.Client(api_key=GOOGLE_API_KEY)
-        logger.info("✅ Gemini Vision (new SDK) fallback configured.")
-    except Exception as e:
-        logger.error(f"❌ Failed to configure Gemini: {str(e)}")
+def init_gemini():
+    global gemini_client
+    api_key = get_google_config()
+    if api_key and not gemini_client:
+        try:
+            gemini_client = genai.Client(api_key=api_key)
+            logger.info("✅ Gemini Vision (new SDK) fallback configured.")
+        except Exception as e:
+            logger.error(f"❌ Failed to configure Gemini: {str(e)}")
+    return gemini_client
+
+# Initial attempt
+init_gemini()
 
 def extract_text_with_azure(image_bytes):
     """Extract text using Azure AI Vision (Computer Vision)"""
-    if not AZURE_VISION_KEY:
+    config = get_azure_config()
+    if not config["key"]:
         logger.error("❌ Azure AI Vision Key is missing from environment.")
         return None
         
     try:
         # Create a client
         client = ImageAnalysisClient(
-            endpoint=AZURE_VISION_ENDPOINT,
-            credential=AzureKeyCredential(AZURE_VISION_KEY)
+            endpoint=config["endpoint"],
+            credential=AzureKeyCredential(config["key"])
         )
 
         # Analyze the image
@@ -69,12 +82,13 @@ def extract_text_with_azure(image_bytes):
         return None
 
 def extract_text_with_gemini(image_bytes):
-    if not gemini_client:
+    client = init_gemini()
+    if not client:
         logger.warning("⚠️ Gemini client not initialized, skipping fallback.")
         return None
     
     try:
-        response = gemini_client.models.generate_content(
+        response = client.models.generate_content(
             model='gemini-1.5-flash',
             contents=[
                 "Extract all text from this medical prescription. Only return the text found, no explanations.",
@@ -108,13 +122,16 @@ def extract_text(file):
             return gemini_text
 
         # 3. Final failure message
+        azure_key = get_azure_config()["key"]
+        google_key = get_google_config()
+        
         error_msg = "ERROR: "
-        if not AZURE_VISION_KEY and not GOOGLE_API_KEY:
-            error_msg += "No OCR services (Azure or Gemini) are configured. Please check your server configuration."
-        elif not GOOGLE_API_KEY:
-            error_msg += "Azure AI Vision failed and no Gemini API key is configured for fallback. Please check your credentials."
+        if not azure_key and not google_key:
+            error_msg += "No OCR services (Azure or Gemini) are configured in the environment variables."
+        elif not google_key:
+            error_msg += "Azure AI Vision failed and no Gemini API key is configured for fallback."
         else:
-            error_msg += "Azure and Gemini both failed to read the prescription. Please ensure the image is clear or use manual entry."
+            error_msg += "Both Azure and Gemini OCR services failed to process the image."
         
         return error_msg
 
