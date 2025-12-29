@@ -17,6 +17,7 @@ from app.family.family_routes import router as family_router
 from app.passport.passport_routes import router as passport_router
 from app.community.community_routes import router as community_router
 from app.alerts.alerts_routes import router as alerts_router
+from app.translate_routes import router as translate_router
 
 app = FastAPI(title="Zovida Backend")
 
@@ -43,7 +44,8 @@ def startup():
         "Groq AI (Analysis)": "GROQ_API_KEY",
         "Gemini AI (Fallback)": "GOOGLE_API_KEY",
         "Twilio (SMS)": "TWILIO_ACCOUNT_SID",
-        "Azure Cosmos DB": "COSMOS_KEY"
+        "Azure Cosmos DB": "COSMOS_KEY",
+        "Azure Translator": "AZURE_TRANSLATOR_KEY"
     }
     
     for name, var in services.items():
@@ -63,6 +65,7 @@ app.include_router(family_router)
 app.include_router(passport_router)
 app.include_router(community_router)
 app.include_router(alerts_router)
+app.include_router(translate_router)
 
 @app.get("/")
 def root():

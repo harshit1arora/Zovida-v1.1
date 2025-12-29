@@ -5,6 +5,10 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+# Reduce verbosity of Azure SDK logs
+logging.getLogger('azure').setLevel(logging.WARNING)
+logging.getLogger('azure.cosmos').setLevel(logging.WARNING)
+
 logger = logging.getLogger(__name__)
 
 # Cosmos DB Configuration
@@ -22,10 +26,23 @@ class CosmosDBService:
         self.client = None
         self.database = None
         self.containers = {}
+        self.initialized = False
+        self.failed_once = False # Prevent constant retry spam
         
-        if ENDPOINT and KEY:
+    def _initialize(self):
+        if self.initialized:
+            return True
+            
+        # Remove failed_once check to allow retry with new endpoint
+        self.failed_once = False 
+
+        endpoint = os.getenv("COSMOS_ENDPOINT")
+        key = os.getenv("COSMOS_KEY")
+        
+        if endpoint and key:
             try:
-                self.client = CosmosClient(ENDPOINT, KEY)
+                # Set a strict timeout to avoid hanging the request
+                self.client = CosmosClient(endpoint, key, connection_timeout=2, request_timeout=2)
                 self.database = self.client.create_database_if_not_exists(id=DATABASE_NAME)
                 
                 # Initialize containers
@@ -34,14 +51,23 @@ class CosmosDBService:
                         id=container_id,
                         partition_key=PartitionKey(path="/id")
                     )
+                self.initialized = True
                 logger.info("✅ Azure Cosmos DB Service Initialized")
+                return True
             except Exception as e:
-                logger.error(f"❌ Failed to initialize Cosmos DB: {str(e)}")
+                self.failed_once = True
+                logger.error(f"❌ Cosmos DB Connection Failed: {str(e)}")
+                logger.info("ℹ️ Zovida will continue using local SQLite storage.")
+                return False
+        return False
 
     def save_item(self, container_id, item):
         """Save or update an item in a specific container"""
-        if not self.client or container_id not in self.containers:
-            logger.warning(f"⚠️ Cosmos DB not configured or container {container_id} missing")
+        if not self.initialized:
+            if not self._initialize():
+                return None
+                
+        if container_id not in self.containers:
             return None
             
         try:
@@ -53,7 +79,11 @@ class CosmosDBService:
 
     def get_item(self, container_id, item_id):
         """Retrieve an item by its ID"""
-        if not self.client or container_id not in self.containers:
+        if not self.initialized:
+            if not self._initialize():
+                return None
+                
+        if container_id not in self.containers:
             return None
             
         try:
@@ -67,7 +97,11 @@ class CosmosDBService:
 
     def query_items(self, container_id, query, parameters=None):
         """Query items in a container"""
-        if not self.client or container_id not in self.containers:
+        if not self.initialized:
+            if not self._initialize():
+                return []
+                
+        if container_id not in self.containers:
             return []
             
         try:
@@ -84,3 +118,5 @@ class CosmosDBService:
 
 # Singleton instance
 cosmos_service = CosmosDBService()
+# Note: Initial initialization at import is removed to prevent startup blockers. 
+# It will initialize on first use.
