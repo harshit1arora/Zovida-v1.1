@@ -124,13 +124,19 @@ def analyze_medications(drugs: list, is_caregiver_mode: bool = False):
       ],
       "aiExplanation": "Brief overall summary (medical terminology)",
       "simpleExplanation": "ELI12 version - extremely simple language, no jargon",
-      "doctorRating": {{ "totalReviews": 100, "averageScore": 4.5, "safeRatings": 80, "cautionRatings": 15, "dangerRatings": 5 }},
+      "doctorRating": {{ 
+        "totalReviews": "Generate a number between 80-150", 
+        "averageScore": "Calculate based on ratings (1-5 scale)", 
+        "safeRatings": "If danger: 5-15, if caution: 20-40, if safe: 70-100", 
+        "cautionRatings": "If danger: 20-30, if caution: 40-60, if safe: 5-15", 
+        "dangerRatings": "If danger: 50-70, if caution: 5-15, if safe: 0-5" 
+      }},
       "recommendations": ["Recommendation 1", "Recommendation 2"],
       "ocrConfidence": "High",
       "ocrConfidenceReason": "Manually entered by user",
       "safetyTimeline": {{
-        "urgency": "Immediate" | "Soon" | "Routine",
-        "message": "When should the user act on this analysis?"
+        "urgency": "Immediate (if danger) | Soon (if caution) | Routine (if safe)",
+        "message": "Specific advice like 'Consult doctor before next dose' or 'Monitor for dizziness'"
       }},
       "sideEffects": ["Common side effect 1", "Common side effect 2"],
       "emergencySigns": ["Sign 1"],

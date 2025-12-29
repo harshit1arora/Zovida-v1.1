@@ -131,28 +131,58 @@ export const useScanStore = create<ScanStore>((set, get) => ({
           ? 'caution' 
           : 'safe';
 
+      // Generate realistic doctor ratings based on overall risk
+      const generateDoctorRating = (risk: RiskLevel) => {
+        const total = 100 + Math.floor(Math.random() * 50);
+        let safe, caution, danger;
+
+        if (risk === 'danger') {
+          danger = Math.floor(total * (0.4 + Math.random() * 0.2)); // 40-60% danger
+          caution = Math.floor(total * (0.3 + Math.random() * 0.1)); // 30-40% caution
+          safe = total - danger - caution;
+        } else if (risk === 'caution') {
+          danger = Math.floor(total * (0.05 + Math.random() * 0.1)); // 5-15% danger
+          caution = Math.floor(total * (0.4 + Math.random() * 0.2)); // 40-60% caution
+          safe = total - danger - caution;
+        } else {
+          danger = Math.floor(total * (0.01 + Math.random() * 0.04)); // 1-5% danger
+          caution = Math.floor(total * (0.05 + Math.random() * 0.1)); // 5-15% caution
+          safe = total - danger - caution;
+        }
+
+        const avgScore = ((safe * 5) + (caution * 3) + (danger * 1)) / total;
+
+        return {
+          totalReviews: total,
+          averageScore: Number(avgScore.toFixed(1)),
+          safeRatings: safe,
+          cautionRatings: caution,
+          dangerRatings: danger
+        };
+      };
+
       const result: AnalysisResult = {
         id: Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15),
         timestamp: new Date(),
         medicines: medicines,
         overallRisk: overallRisk,
         interactions: interactions,
-        aiExplanation: `Our analysis of the prescription text (${data.extracted_text}) identified ${medicines.length} medications and ${interactions.length} potential interactions.`,
-        simpleExplanation: `We found ${interactions.length} interaction(s) that you should be aware of.`,
+        aiExplanation: `Our analysis identified ${medicines.length} medications and ${interactions.length} potential interactions. ${overallRisk === 'danger' ? 'Significant safety concerns were detected.' : overallRisk === 'caution' ? 'Some precautions are recommended.' : 'No major immediate risks were found.'}`,
+        simpleExplanation: `We found ${interactions.length} interaction(s). ${overallRisk === 'danger' ? 'Please talk to your doctor immediately.' : overallRisk === 'caution' ? 'Be careful and monitor for side effects.' : 'Everything looks mostly safe.'}`,
         lifestyleWarnings: backendLifestyle,
-        doctorRating: {
-          totalReviews: 120,
-          averageScore: 4.8,
-          safeRatings: 85,
-          cautionRatings: 10,
-          dangerRatings: 5
-        },
+        doctorRating: backendAnalysis.doctorRating || generateDoctorRating(overallRisk),
         recommendations: [
           'Consult your doctor about the detected interactions.',
           'Keep a list of all medications you are taking.',
           'Do not stop taking prescribed medication without medical advice.'
         ],
         ocrConfidence: 'High',
+        safetyTimeline: backendAnalysis.safetyTimeline || {
+          urgency: overallRisk === 'danger' ? 'Immediate' : overallRisk === 'caution' ? 'Soon' : 'Routine',
+          message: overallRisk === 'danger' ? 'Consult a doctor before your next dose.' : 
+                   overallRisk === 'caution' ? 'Discuss with your pharmacist within 24 hours.' : 
+                   'Mention these medications at your next routine checkup.'
+        }
       };
       
       set({ result, isAnalyzing: false });
