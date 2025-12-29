@@ -27,6 +27,16 @@ services:
         sync: false
       - key: TWILIO_PHONE_NUMBER
         sync: false
+      - key: COSMOS_KEY
+        sync: false
+      - key: COSMOS_ENDPOINT
+        value: https://zovida-db-account.documents.azure.com:443/
+      - key: AZURE_TRANSLATOR_KEY
+        sync: false
+      - key: AZURE_TRANSLATOR_ENDPOINT
+        value: https://api.cognitive.microsofttranslator.com/
+      - key: AZURE_TRANSLATOR_REGION
+        value: centralindia
 
   # Frontend Service (React + Vite)
   - type: web

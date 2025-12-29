@@ -13,3 +13,4 @@ google-genai
 groq
 email-validator
 azure-cosmos
+requests
