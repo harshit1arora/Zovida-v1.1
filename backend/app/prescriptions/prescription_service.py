@@ -4,10 +4,12 @@ from app.database import get_db
 from app.prescriptions.ocr_service import extract_text
 from app.prescriptions.drug_dictionary import load_known_drugs
 from app.prescriptions.lifestyle_service import get_lifestyle_warnings
+from app.cosmos_service import cosmos_service, CONTAINER_INTERACTIONS
 import re
+import datetime
+import uuid
 
 KNOWN_DRUGS = load_known_drugs()
-
 
 def extract_drugs(text: str):
     words = re.findall(r"[A-Za-z]+", text.lower())
@@ -26,7 +28,6 @@ def extract_drugs(text: str):
 
     return list(extracted)
 
-
 def process_prescription(user_id: int, text: str):
     drugs = extract_drugs(text)
     interactions = []
@@ -39,13 +40,27 @@ def process_prescription(user_id: int, text: str):
         for d1, d2 in combinations(drugs, 2):
             level, confidence = check_interaction(d1, d2)
 
-            interactions.append({
+            interaction_data = {
                 "drug1": d1,
                 "drug2": d2,
                 "level": level,
                 "confidence": confidence
-            })
+            }
+            interactions.append(interaction_data)
 
+            # 1. Anonymized Cloud Logging (Cosmos DB)
+            cosmos_item = {
+                "id": str(uuid.uuid4()),
+                "drug1": d1,
+                "drug2": d2,
+                "level": level,
+                "confidence": confidence,
+                "timestamp": datetime.datetime.utcnow().isoformat(),
+                "is_anonymized": True
+            }
+            cosmos_service.save_item(CONTAINER_INTERACTIONS, cosmos_item)
+
+            # 2. Local User History (SQLite)
             cursor.execute("""
                 INSERT INTO history (user_id, drug1, drug2, level, confidence)
                 VALUES (?, ?, ?, ?, ?)
@@ -53,12 +68,13 @@ def process_prescription(user_id: int, text: str):
     
     # If only one drug, save it as a "Safe" entry with no second drug
     elif len(drugs) == 1:
-        interactions.append({
+        interaction_data = {
             "drug1": drugs[0],
             "drug2": None,
             "level": "Safe",
             "confidence": 1.0
-        })
+        }
+        interactions.append(interaction_data)
         
         cursor.execute("""
             INSERT INTO history (user_id, drug1, drug2, level, confidence)

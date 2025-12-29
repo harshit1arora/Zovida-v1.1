@@ -42,7 +42,8 @@ def startup():
         "Azure AI Vision (OCR)": "AZURE_VISION_KEY",
         "Groq AI (Analysis)": "GROQ_API_KEY",
         "Gemini AI (Fallback)": "GOOGLE_API_KEY",
-        "Twilio (SMS)": "TWILIO_ACCOUNT_SID"
+        "Twilio (SMS)": "TWILIO_ACCOUNT_SID",
+        "Azure Cosmos DB": "COSMOS_KEY"
     }
     
     for name, var in services.items():

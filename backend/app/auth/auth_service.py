@@ -1,8 +1,10 @@
 from app.database import get_db
 from app.auth.sms_service import request_phone_otp, check_phone_otp, request_whatsapp_otp
+from app.cosmos_service import cosmos_service, CONTAINER_SESSIONS
 import sqlite3
 import random
 import string
+import uuid
 from datetime import datetime, timedelta
 
 def generate_otp(email=None, phone=None):
@@ -98,6 +100,17 @@ def verify_otp(email=None, phone=None, code=None):
                 cursor.execute("DELETE FROM otps WHERE email = ?", (email,))
                 conn.commit()
                 
+            # Log session to Cosmos DB (Anonymized)
+            session_id = str(uuid.uuid4())
+            cosmos_item = {
+                "id": session_id,
+                "user_identifier": email if email else f"phone_{phone[-4:]}",
+                "login_time": datetime.utcnow().isoformat(),
+                "auth_type": "otp",
+                "is_pii_scrubbed": True
+            }
+            cosmos_service.save_item(CONTAINER_SESSIONS, cosmos_item)
+
             return user
         return None
     except Exception as e:
