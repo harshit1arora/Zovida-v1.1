@@ -581,7 +581,7 @@ const Index = () => {
                   Shaped by practicing doctors at leading institutions.
                 </h3>
                 <p className="text-muted-foreground leading-relaxed">
-                  Zovida was shaped with early clinical feedback from practicing doctors at leading Indian medical institutions including <strong>AIIMS New Delhi</strong>.
+                  Zovida was shaped with early clinical feedback from practicing doctors at leading tertiary care medical institutions in India, including <strong>AIIMS New Delhi</strong>.
                 </p>
                 <p className="text-muted-foreground leading-relaxed">
                   This feedback informed our focus on high-risk interaction flagging, conservative explanations, and clinician support workflows.
