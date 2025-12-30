@@ -34,7 +34,10 @@ import {
   ShieldCheck,
   Activity,
   Calendar,
-  Share2
+  Share2,
+  Stethoscope,
+  Globe,
+  Info
 } from 'lucide-react';
 
 const Index = () => {
