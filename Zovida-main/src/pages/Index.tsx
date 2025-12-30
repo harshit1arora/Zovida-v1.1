@@ -586,6 +586,9 @@ const Index = () => {
                 <p className="text-muted-foreground leading-relaxed">
                   This feedback informed our focus on high-risk interaction flagging, conservative explanations, and clinician support workflows.
                 </p>
+                <p className="text-muted-foreground leading-relaxed italic">
+                  This feedback directly shaped Zovida's red flag only approach, clinician escalation flows, and refusal to provide medical advice.
+                </p>
               </motion.div>
 
               <motion.div
