@@ -546,6 +546,101 @@ const Index = () => {
         </div>
       </section>
 
+      {/* About Section */}
+      <section className="py-24 bg-white dark:bg-slate-900 overflow-hidden relative">
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-px bg-gradient-to-r from-transparent via-slate-200 dark:via-slate-800 to-transparent" />
+        <div className="container px-4">
+          <div className="max-w-4xl mx-auto">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="text-center mb-16"
+            >
+              <h2 className="text-3xl md:text-5xl font-black mb-6 tracking-tight">
+                About <span className="text-primary">Zovida</span>
+              </h2>
+              <div className="h-1.5 w-24 bg-primary mx-auto rounded-full" />
+            </motion.div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+              <motion.div
+                initial={{ opacity: 0, x: -30 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                className="space-y-6"
+              >
+                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary font-bold text-sm">
+                  <Stethoscope size={16} />
+                  Clinician Review & Early Validation
+                </div>
+                <h3 className="text-2xl font-black leading-tight">
+                  Shaped by practicing doctors at leading institutions.
+                </h3>
+                <p className="text-muted-foreground leading-relaxed">
+                  Zovida was shaped with early clinical feedback from practicing doctors at leading Indian medical institutions including <strong>AIIMS New Delhi</strong>.
+                </p>
+                <p className="text-muted-foreground leading-relaxed">
+                  This feedback informed our focus on high-risk interaction flagging, conservative explanations, and clinician support workflows.
+                </p>
+              </motion.div>
+
+              <motion.div
+                initial={{ opacity: 0, x: 30 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                className="bg-slate-50 dark:bg-slate-800/50 p-8 rounded-[2.5rem] border border-slate-100 dark:border-slate-800 shadow-xl shadow-slate-200/50 dark:shadow-none"
+              >
+                <div className="space-y-6">
+                  <div className="flex gap-4">
+                    <div className="w-12 h-12 rounded-2xl bg-safe text-white flex items-center justify-center shrink-0">
+                      <ShieldCheck size={24} />
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-lg mb-1">Medication Safety Passport</h4>
+                      <p className="text-sm text-muted-foreground">Carry your safety record across doctors and hospitals globally.</p>
+                    </div>
+                  </div>
+                  <div className="flex gap-4">
+                    <div className="w-12 h-12 rounded-2xl bg-accent text-white flex items-center justify-center shrink-0">
+                      <Globe size={24} />
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-lg mb-1">Universal Accessibility</h4>
+                      <p className="text-sm text-muted-foreground">Explaining interaction risks in simple language for everyone.</p>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            </div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="mt-16 p-8 rounded-[2.5rem] bg-gradient-to-br from-slate-900 to-slate-800 text-white border border-white/10 relative overflow-hidden group"
+            >
+              <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:scale-110 transition-transform duration-500">
+                <AlertTriangle size={160} />
+              </div>
+              <div className="relative z-10 flex flex-col md:flex-row gap-8 items-center">
+                <div className="w-16 h-16 rounded-2xl bg-amber-500 text-slate-900 flex items-center justify-center shrink-0 shadow-lg shadow-amber-500/20">
+                  <Info size={32} />
+                </div>
+                <div>
+                  <h4 className="text-xl font-bold mb-3 flex items-center gap-2">
+                    Medical Disclaimer
+                  </h4>
+                  <p className="text-slate-400 leading-relaxed">
+                    Zovida does not provide medical advice or treatment recommendations. Its design emphasizes clinician support, responsible AI use, & patient safety.
+                  </p>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        </div>
+      </section>
+
       {/* Modern CTA Section */}
       <section className="py-24 relative overflow-hidden">
         <div className="absolute inset-0 bg-slate-900" />
