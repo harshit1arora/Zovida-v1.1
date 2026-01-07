@@ -46,7 +46,7 @@ const DoctorsPage = () => {
   );
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 pb-32 relative overflow-hidden">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 pb-[calc(8rem+env(safe-area-inset-bottom,0px))] md:pb-24 relative overflow-hidden">
       {/* Animated Background Elements */}
       <div className="absolute inset-0 -z-10 overflow-hidden pointer-events-none">
         <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-primary/10 rounded-full blur-[120px] animate-pulse" />
@@ -227,7 +227,7 @@ const DoctorsPage = () => {
 
       {/* Floating Manual Entry for Mobile */}
       <motion.div 
-        className="fixed bottom-28 right-6 z-50 md:hidden"
+        className="fixed bottom-[calc(6rem+env(safe-area-inset-bottom,0px))] right-6 z-50 md:hidden"
         initial={{ scale: 0, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         transition={{ delay: 1, type: 'spring' }}

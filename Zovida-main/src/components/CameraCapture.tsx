@@ -108,8 +108,8 @@ const CameraCapture = ({ onCapture, onClose }: CameraCaptureProps) => {
       exit={{ opacity: 0 }}
     >
       {/* Header */}
-      <div className="absolute top-0 left-0 right-0 z-10 p-4 flex justify-between items-center bg-gradient-to-b from-background to-transparent">
-        <Button variant="ghost" size="icon" onClick={onClose}>
+      <div className="absolute top-0 left-0 right-0 z-10 p-4 flex justify-between items-center bg-gradient-to-b from-background to-transparent pt-[calc(1rem+env(safe-area-inset-top,0px))]">
+        <Button variant="ghost" size="icon" onClick={onClose} className="h-11 w-11 rounded-xl">
           <X size={24} />
         </Button>
         <h2 className="font-semibold">Scan Prescription</h2>
@@ -126,7 +126,7 @@ const CameraCapture = ({ onCapture, onClose }: CameraCaptureProps) => {
         onChange={handleFileUpload}
       />
 
-      <div className="h-full pt-16 pb-32 flex flex-col">
+      <div className="h-full pt-[calc(4rem+env(safe-area-inset-top,0px))] pb-[calc(8rem+env(safe-area-inset-bottom,0px))] flex flex-col">
         {/* Camera/Preview Area */}
         <div className="flex-1 relative bg-foreground/5 rounded-3xl mx-4 overflow-hidden">
           <AnimatePresence mode="wait">
@@ -256,25 +256,25 @@ const CameraCapture = ({ onCapture, onClose }: CameraCaptureProps) => {
         </div>
 
         {/* Action Buttons */}
-        <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-background via-background to-transparent">
+        <div className="absolute bottom-0 left-0 right-0 p-6 pb-[calc(1.5rem+env(safe-area-inset-bottom,0px))] bg-gradient-to-t from-background via-background to-transparent">
           {capturedImage ? (
             <div className="flex gap-4">
               <Button 
                 variant="outline" 
                 size="lg" 
-                className="flex-1"
+                className="flex-1 h-14 rounded-2xl font-bold"
                 onClick={retake}
               >
-                <RotateCcw size={20} />
+                <RotateCcw size={20} className="mr-2" />
                 Retake
               </Button>
               <Button 
                 variant="scan" 
                 size="lg" 
-                className="flex-1"
+                className="flex-1 h-14 rounded-2xl font-bold"
                 onClick={confirmCapture}
               >
-                <Check size={20} />
+                <Check size={20} className="mr-2" />
                 Analyze
               </Button>
             </div>
@@ -283,19 +283,19 @@ const CameraCapture = ({ onCapture, onClose }: CameraCaptureProps) => {
               <Button
                 variant="outline"
                 size="lg"
-                className="flex-1"
+                className="flex-1 h-14 rounded-2xl font-bold"
                 onClick={() => fileInputRef.current?.click()}
               >
-                <Upload size={20} />
+                <Upload size={20} className="mr-2" />
                 Upload
               </Button>
               <Button
                 variant="scan"
                 size="lg"
-                className="flex-1"
+                className="flex-1 h-14 rounded-2xl font-bold"
                 onClick={isCameraActive ? capturePhoto : startCamera}
               >
-                <Camera size={20} />
+                <Camera size={20} className="mr-2" />
                 {isCameraActive ? 'Capture' : 'Camera'}
               </Button>
             </div>

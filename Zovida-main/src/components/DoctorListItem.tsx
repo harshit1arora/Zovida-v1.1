@@ -69,7 +69,7 @@ const DoctorListItem = ({ doctor, index, onConsult }: DoctorListItemProps) => {
                   size="sm"
                   disabled={!doctor.available}
                   onClick={() => onConsult(doctor)}
-                  className="h-9 px-4 rounded-xl font-bold text-[11px] shadow-lg shadow-primary/10"
+                  className="h-11 px-5 rounded-xl font-bold text-[11px] shadow-lg shadow-primary/10"
                 >
                   <Video size={14} className="mr-1.5" />
                   Consult

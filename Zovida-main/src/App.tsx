@@ -16,6 +16,7 @@ import ProfilePage from "./pages/ProfilePage";
 import CommunityPage from "./pages/CommunityPage";
 import NotFound from "./pages/NotFound";
 import ZovidaChatbot from "./components/ZovidaChatbot";
+import FloatingSOS from "./components/FloatingSOS";
 import NetworkStatus from "./components/NetworkStatus";
 import ReminderService from "./components/ReminderService";
 
@@ -38,7 +39,7 @@ const App = () => (
           <ReminderService />
           <Routes>
             <Route path="/auth" element={<AuthPage />} />
-            <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
+            <Route path="/" element={<Index />} />
             <Route path="/scan" element={<ProtectedRoute><ScanPage /></ProtectedRoute>} />
             <Route path="/results" element={<ProtectedRoute><ResultsPage /></ProtectedRoute>} />
             <Route path="/doctors" element={<ProtectedRoute><DoctorsPage /></ProtectedRoute>} />
@@ -51,6 +52,7 @@ const App = () => (
             <Route path="*" element={<NotFound />} />
           </Routes>
           <ZovidaChatbot />
+          <FloatingSOS />
           <Toaster />
           <Sonner />
         </div>

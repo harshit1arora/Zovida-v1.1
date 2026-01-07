@@ -173,7 +173,7 @@ const FamilyPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 pb-32 relative overflow-hidden">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 pb-[calc(8rem+env(safe-area-inset-bottom,0px))] md:pb-24 relative overflow-hidden">
       {/* Animated Background Elements */}
       <div className="absolute inset-0 -z-10 overflow-hidden pointer-events-none">
         <div className="absolute top-[-5%] left-[-5%] w-[40%] h-[40%] bg-accent/10 rounded-full blur-[100px] animate-pulse" />
@@ -187,9 +187,9 @@ const FamilyPage = () => {
               variant="ghost" 
               size="icon" 
               onClick={() => navigate('/')}
-              className="rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800"
+              className="h-12 w-12 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800"
             >
-              <ArrowLeft size={20} />
+              <ArrowLeft size={22} />
             </Button>
             <h1 className="text-xl font-black flex items-center gap-2 text-slate-900 dark:text-white">
               <Users className="text-accent animate-pulse" />
@@ -201,11 +201,11 @@ const FamilyPage = () => {
             size="icon" 
             onClick={() => setIsAdding(!isAdding)}
             className={cn(
-              "rounded-xl transition-all",
+              "h-12 w-12 rounded-xl transition-all",
               isAdding ? "bg-accent/10 text-accent rotate-45" : "hover:bg-slate-100 dark:hover:bg-slate-800"
             )}
           >
-            <Plus size={20} />
+            <Plus size={22} />
           </Button>
         </div>
       </header>
@@ -249,9 +249,9 @@ const FamilyPage = () => {
             variant="outline"
             size="sm" 
             onClick={() => setIsAdding(true)} 
-            className="rounded-full border-accent/20 text-accent hover:bg-accent hover:text-white font-bold h-9 px-5 transition-all shadow-lg shadow-accent/5 active:scale-95"
+            className="rounded-full border-accent/20 text-accent hover:bg-accent hover:text-white font-bold h-11 px-6 transition-all shadow-lg shadow-accent/5 active:scale-95"
           >
-            <UserPlus size={14} className="mr-2" />
+            <UserPlus size={16} className="mr-2" />
             Add Member
           </Button>
         </div>
@@ -361,10 +361,10 @@ const FamilyPage = () => {
                         <Button 
                           variant="ghost" 
                           size="icon" 
-                          className="text-slate-400 hover:text-destructive hover:bg-destructive/10 rounded-xl opacity-0 group-hover:opacity-100 transition-all active:scale-90" 
+                          className="w-11 h-11 text-slate-400 hover:text-destructive hover:bg-destructive/10 rounded-xl md:opacity-0 group-hover:opacity-100 transition-all active:scale-90" 
                           onClick={() => removeMember(member.id)}
                         >
-                          <Trash2 size={18} />
+                          <Trash2 size={20} />
                         </Button>
                       </div>
                     </div>

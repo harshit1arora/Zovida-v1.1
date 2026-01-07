@@ -106,17 +106,17 @@ const SOSPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white flex flex-col">
+    <div className="min-h-screen bg-slate-950 text-white flex flex-col pb-[calc(8rem+env(safe-area-inset-bottom,0px))] md:pb-24">
       {/* Header */}
       <header className="p-4 flex items-center justify-between bg-slate-900/50 backdrop-blur-md border-b border-white/10">
         <div className="flex items-center gap-3">
           <Button 
             variant="ghost" 
             size="icon" 
-            className="text-white hover:bg-white/10"
+            className="h-11 w-11 text-white hover:bg-white/10 rounded-xl"
             onClick={() => navigate(-1)}
           >
-            <ArrowLeft size={24} />
+            <ArrowLeft size={22} />
           </Button>
           <ZovidaLogo size="sm" />
         </div>
@@ -248,8 +248,8 @@ const SOSPage = () => {
                       <p className="text-xs text-slate-400">{contact.relation} • {contact.phone}</p>
                     </div>
                   </div>
-                  <Button variant="ghost" size="icon" className="text-slate-400" onClick={() => window.open(`tel:${contact.phone}`)}>
-                    <Phone size={18} />
+                  <Button variant="ghost" size="icon" className="h-11 w-11 rounded-xl text-slate-400 hover:text-white hover:bg-white/10" onClick={() => window.open(`tel:${contact.phone}`)}>
+                    <Phone size={20} />
                   </Button>
                 </div>
               ))}

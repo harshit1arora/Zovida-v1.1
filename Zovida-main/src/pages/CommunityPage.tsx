@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import Header from '@/components/Header';
+import BottomNav from '@/components/BottomNav';
 import { endpoints } from '@/lib/api';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
@@ -122,7 +123,7 @@ const CommunityPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 pb-[calc(8rem+env(safe-area-inset-bottom,0px))] md:pb-24">
       <Header title="Patient Community" />
       
       {/* Bulletin Banner */}
@@ -449,6 +450,7 @@ const CommunityPage = () => {
           </TabsContent>
         </Tabs>
       </main>
+      <BottomNav />
     </div>
   );
 };

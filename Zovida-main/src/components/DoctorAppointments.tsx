@@ -83,7 +83,7 @@ const DoctorAppointments = () => {
                     <Button 
                       variant="ghost" 
                       size="icon" 
-                      className="h-8 w-8 text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
+                      className="h-8 w-8 text-muted-foreground hover:text-destructive md:opacity-0 group-hover:opacity-100 transition-opacity"
                       onClick={() => {
                         cancelAppointment(app.id);
                         toast.success("Appointment cancelled");

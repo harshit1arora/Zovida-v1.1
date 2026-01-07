@@ -69,4 +69,4 @@ app.include_router(translate_router)
 
 @app.get("/")
 def root():
-    return {"status": "MedixAI backend running"}
+    return {"status": "Zovida backend running"}

@@ -142,7 +142,7 @@ const ProfilePage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 pb-20">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 pb-[calc(8rem+env(safe-area-inset-bottom,0px))] md:pb-24">
       <Header showBack title="My Profile" />
 
       <main className="container max-w-4xl px-4 py-8">
@@ -322,8 +322,8 @@ const ProfilePage = () => {
                     </div>
                   </CardContent>
                   <CardFooter className="flex justify-end pt-6">
-                    <Button type="submit" className="gap-2" disabled={saving}>
-                      <Save size={18} />
+                    <Button type="submit" className="h-12 px-8 rounded-xl font-black gap-2 transition-all active:scale-95" disabled={saving}>
+                      <Save size={20} />
                       {saving ? "Saving..." : "Save Profile"}
                     </Button>
                   </CardFooter>
