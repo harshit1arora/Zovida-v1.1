@@ -20,10 +20,11 @@ import {
 } from 'lucide-react';
 
 interface LandingHomeProps {
+  onStartScan: () => void;
   onManualEntry: () => void;
 }
 
-const LandingHome = ({ onManualEntry }: LandingHomeProps) => {
+const LandingHome = ({ onStartScan, onManualEntry }: LandingHomeProps) => {
   const navigate = useNavigate();
   const { t } = useTranslation();
 
@@ -37,10 +38,10 @@ const LandingHome = ({ onManualEntry }: LandingHomeProps) => {
     <>
       {/* Hero Section */}
       <section className="relative overflow-hidden pt-12 pb-16 md:pt-28 md:pb-32">
-        <div className="absolute inset-0 -z-10">
+        <div className="absolute inset-0 -z-10" style={{ backgroundImage: 'var(--grid-pattern)', backgroundSize: '40px 40px' }} />
+        <div className="absolute inset-0 -z-20">
           <div className="absolute top-0 left-1/4 w-[300px] md:w-[500px] h-[300px] md:h-[500px] bg-primary/20 rounded-full blur-[80px] md:blur-[120px] animate-pulse" />
           <div className="absolute bottom-0 right-1/4 w-[400px] md:w-[600px] h-[400px] md:h-[600px] bg-safe/20 rounded-full blur-[90px] md:blur-[130px] animate-pulse delay-700" />
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-[radial-gradient(circle_at_center,transparent_0%,white_100%)] dark:bg-[radial-gradient(circle_at_center,transparent_0%,#020617_100%)]" />
         </div>
 
         <div className="container relative px-4">
@@ -83,7 +84,7 @@ const LandingHome = ({ onManualEntry }: LandingHomeProps) => {
                 variant="scan"
                 size="xl"
                 className="w-full sm:flex-1 h-14 text-base rounded-2xl shadow-2xl shadow-primary/30 hover:shadow-primary/40 transition-all active:scale-95"
-                onClick={() => navigate('/scan')}
+                onClick={onStartScan}
               >
                 <Scan size={22} className="mr-3" />
                 {t('hero.scan_btn')}

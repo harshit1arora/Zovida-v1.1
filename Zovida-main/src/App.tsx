@@ -16,7 +16,6 @@ import ProfilePage from "./pages/ProfilePage";
 import CommunityPage from "./pages/CommunityPage";
 import NotFound from "./pages/NotFound";
 import ZovidaChatbot from "./components/ZovidaChatbot";
-import FloatingSOS from "./components/FloatingSOS";
 import NetworkStatus from "./components/NetworkStatus";
 import ReminderService from "./components/ReminderService";
 
@@ -52,7 +51,6 @@ const App = () => (
             <Route path="*" element={<NotFound />} />
           </Routes>
           <ZovidaChatbot />
-          <FloatingSOS />
           <Toaster />
           <Sonner />
         </div>
