@@ -6,6 +6,12 @@ import LanguageSwitcher from '@/components/LanguageSwitcher';
 import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { 
   Scan, 
   History, 
@@ -15,7 +21,8 @@ import {
   ArrowLeft,
   LogOut,
   User as UserIcon,
-  Globe
+  Globe,
+  Settings
 } from 'lucide-react';
 import { endpoints } from '@/lib/api';
 
@@ -102,7 +109,7 @@ const Header = ({ showBack, title, onManualEntry, rightContent }: HeaderProps) =
       />
       
       <div className="container flex items-center justify-between px-4 md:px-6 relative z-10">
-        <div className="flex items-center gap-8">
+        <div className="flex items-center gap-2 md:gap-8">
           {showBack && (
             <Button variant="ghost" size="icon" onClick={() => navigate(-1)} className="rounded-full hover:bg-primary/10 hover:text-primary transition-colors h-9 w-9">
               <ArrowLeft size={20} />
@@ -117,11 +124,11 @@ const Header = ({ showBack, title, onManualEntry, rightContent }: HeaderProps) =
               </div>
             </div>
             {!showBack && (
-              <span className="text-2xl font-black tracking-tighter text-foreground group-hover:tracking-tight transition-all duration-300">
+              <span className="text-xl md:text-2xl font-black tracking-tighter text-foreground group-hover:tracking-tight transition-all duration-300">
                 Zovida<span className="text-primary animate-pulse">.</span>
               </span>
             )}
-            {title && <h1 className="text-lg font-black md:hidden truncate max-w-[150px] tracking-tight">{title}</h1>}
+            {title && <h1 className="text-lg font-black md:hidden truncate max-w-[100px] sm:max-w-[150px] tracking-tight">{title}</h1>}
           </div>
 
           <nav className="hidden lg:flex items-center gap-1.5 p-1 bg-slate-100/40 dark:bg-slate-900/40 backdrop-blur-md rounded-2xl border border-white/20 dark:border-white/5 shadow-inner">
@@ -154,7 +161,7 @@ const Header = ({ showBack, title, onManualEntry, rightContent }: HeaderProps) =
           </nav>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3">
           {rightContent}
           <div className="hidden sm:flex items-center gap-3 mr-1">
             <Button 
@@ -182,38 +189,40 @@ const Header = ({ showBack, title, onManualEntry, rightContent }: HeaderProps) =
           <div className="flex items-center gap-1.5 bg-slate-100/40 dark:bg-slate-900/40 backdrop-blur-md p-1 rounded-2xl border border-white/20 dark:border-white/5 shadow-inner">
             <LanguageSwitcher />
             {user ? (
-              <div className="flex items-center gap-2 pl-1.5 pr-0.5">
-                <div className="flex flex-col items-end hidden md:flex cursor-pointer group/profile" onClick={() => navigate('/profile')}>
-                  <span className="text-[11px] font-black text-foreground leading-none group-hover:text-primary transition-colors">
-                    {user.name || 'User'}
-                  </span>
-                  <div className="flex items-center gap-1 mt-1">
-                    <div className="w-1 h-1 rounded-full bg-safe animate-pulse" />
-                    <span className="text-[7px] font-bold text-muted-foreground uppercase tracking-[0.2em]">
-                      Free Tier
-                    </span>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <div className="flex items-center gap-2 pl-1.5 pr-0.5 cursor-pointer outline-none">
+                    <div className="flex flex-col items-end hidden md:flex group/profile">
+                      <span className="text-[11px] font-black text-foreground leading-none group-hover:text-primary transition-colors">
+                        {user.name || 'User'}
+                      </span>
+                      <div className="flex items-center gap-1 mt-1">
+                        <div className="w-1 h-1 rounded-full bg-safe animate-pulse" />
+                        <span className="text-[7px] font-bold text-muted-foreground uppercase tracking-[0.2em]">
+                          Free Tier
+                        </span>
+                      </div>
+                    </div>
+                    
+                    <div className="relative group/avatar">
+                      <div className="absolute -inset-1 bg-gradient-to-tr from-primary to-blue-400 rounded-xl blur opacity-20 group-hover/avatar:opacity-40 transition-opacity" />
+                      <div className="relative h-8 w-8 rounded-lg bg-gradient-to-tr from-primary to-blue-400 flex items-center justify-center text-white font-black text-xs shadow-lg shadow-primary/20 border border-white/20">
+                        {(user.name || 'U')[0].toUpperCase()}
+                      </div>
+                    </div>
                   </div>
-                </div>
-                
-                <div 
-                  className="relative cursor-pointer group/avatar"
-                  onClick={() => navigate('/profile')}
-                >
-                  <div className="absolute -inset-1 bg-gradient-to-tr from-primary to-blue-400 rounded-xl blur opacity-20 group-hover/avatar:opacity-40 transition-opacity" />
-                  <div className="relative h-8 w-8 rounded-lg bg-gradient-to-tr from-primary to-blue-400 flex items-center justify-center text-white font-black text-xs shadow-lg shadow-primary/20 border border-white/20">
-                    {(user.name || 'U')[0].toUpperCase()}
-                  </div>
-                </div>
-
-                <Button 
-                  variant="ghost" 
-                  size="icon" 
-                  onClick={handleLogout} 
-                  className="rounded-lg h-8 w-8 hover:bg-red-50 dark:hover:bg-red-950/30 hover:text-red-500 transition-all duration-300"
-                >
-                  <LogOut size={15} />
-                </Button>
-              </div>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-48">
+                  <DropdownMenuItem onClick={() => navigate('/profile')} className="cursor-pointer">
+                    <UserIcon className="mr-2 h-4 w-4" />
+                    <span>Profile</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleLogout} className="cursor-pointer text-red-500 focus:text-red-500 focus:bg-red-50 dark:focus:bg-red-950/30">
+                    <LogOut className="mr-2 h-4 w-4" />
+                    <span>Log out</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             ) : (
               <Button 
                 variant="default" 

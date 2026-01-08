@@ -151,7 +151,7 @@ const Index = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background pb-24 md:pb-0">
       <Header onManualEntry={handleManualEntry} />
 
       {/* Hero Section */}
@@ -213,7 +213,7 @@ const Index = () => {
               <Button
                 variant="outline"
                 size="xl"
-                className="w-full sm:w-auto h-14 px-8 text-base rounded-2xl border-2 hover:bg-primary/5 transition-all active:scale-95"
+                className="w-full sm:w-auto h-14 px-8 text-base rounded-2xl border-2 hover:bg-primary/5 hover:text-primary transition-all active:scale-95"
                 onClick={handleManualEntry}
               >
                 <Plus size={22} className="mr-2" />

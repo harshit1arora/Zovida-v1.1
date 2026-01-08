@@ -734,26 +734,6 @@ const ResultsPage = () => {
         </motion.div>
       </main>
 
-      {/* Modern Action Bar */}
-      <div className="fixed bottom-0 left-0 right-0 p-4 bg-white/80 dark:bg-slate-950/80 backdrop-blur-2xl border-t border-slate-100 dark:border-slate-800 z-[110] md:pb-6">
-        <div className="container max-w-4xl flex gap-3">
-          <Button
-            className="flex-1 h-12 bg-primary hover:bg-primary/90 rounded-xl text-sm font-black shadow-2xl shadow-primary/30 transition-all active:scale-95 flex items-center justify-center gap-2"
-            onClick={handleNewScan}
-          >
-            <RotateCcw size={18} />
-            <span>New Scan</span>
-          </Button>
-          <Button
-            variant="outline"
-            className="w-12 h-12 rounded-xl border-slate-200 dark:border-slate-800 flex items-center justify-center p-0"
-            onClick={() => navigate('/')}
-          >
-            <Home size={18} />
-          </Button>
-        </div>
-      </div>
-
       <ManualEntryModal 
         isOpen={isManualModalOpen} 
         onClose={() => setIsManualModalOpen(false)} 
