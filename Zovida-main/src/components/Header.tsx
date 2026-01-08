@@ -5,26 +5,32 @@ import ZovidaLogo from '@/components/ZovidaLogo';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
 import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
-import { motion, AnimatePresence } from 'framer-motion';
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { 
   Scan, 
   History, 
   Plus, 
   Users, 
-  Phone,
   ArrowLeft,
   LogOut,
   User as UserIcon,
   Globe,
-  Settings
+  Settings,
+  Shield
 } from 'lucide-react';
 import { endpoints } from '@/lib/api';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "@/components/ui/avatar";
 
 interface HeaderProps {
   showBack?: boolean;
@@ -91,10 +97,10 @@ const Header = ({ showBack, title, onManualEntry, rightContent }: HeaderProps) =
   return (
     <header 
       className={cn(
-        "sticky top-0 z-50 transition-all duration-300 ease-in-out",
+        "sticky top-0 z-50 transition-all duration-300 ease-in-out pt-[env(safe-area-inset-top,0px)]",
         isScrolled 
-          ? "bg-white/80 dark:bg-slate-950/80 backdrop-blur-xl border-b border-slate-200/50 dark:border-slate-800/50 py-2 shadow-lg shadow-slate-200/20 dark:shadow-black/20" 
-          : "bg-transparent border-b border-transparent py-4"
+          ? "bg-white/80 dark:bg-slate-950/80 backdrop-blur-xl border-b border-slate-200/50 dark:border-slate-800/50 py-2" 
+          : "bg-transparent border-b border-transparent py-4 md:py-6"
       )}
     >
       {/* Decorative top gradient bar */}
@@ -108,30 +114,25 @@ const Header = ({ showBack, title, onManualEntry, rightContent }: HeaderProps) =
         }} 
       />
       
-      <div className="container flex items-center justify-between px-4 md:px-6 relative z-10">
+      <div className="container flex items-center justify-between px-3 md:px-6 relative z-10">
         <div className="flex items-center gap-2 md:gap-8">
           {showBack && (
-            <Button variant="ghost" size="icon" onClick={() => navigate(-1)} className="rounded-full hover:bg-primary/10 hover:text-primary transition-colors h-9 w-9">
-              <ArrowLeft size={20} />
+            <Button variant="ghost" size="icon" onClick={() => navigate(-1)} className="rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors h-11 w-11">
+              <ArrowLeft size={22} />
             </Button>
           )}
           
-          <div className="flex items-center gap-3 cursor-pointer group" onClick={() => navigate('/')}>
-            <div className="relative">
-              <div className="absolute -inset-2 bg-primary/20 rounded-full blur-lg opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-              <div className="relative p-1.5 bg-gradient-to-br from-primary/10 to-primary/5 rounded-xl group-hover:scale-110 group-hover:rotate-3 transition-all duration-300 border border-primary/10">
-                <ZovidaLogo size="sm" showText={false} />
-              </div>
-            </div>
+          <div className="flex items-center gap-2 md:gap-3 cursor-pointer" onClick={() => navigate('/')}>
+            <ZovidaLogo size="sm" showText={false} className="w-7 h-7 md:w-8 md:h-8" />
             {!showBack && (
               <span className="text-xl md:text-2xl font-black tracking-tighter text-foreground group-hover:tracking-tight transition-all duration-300">
                 Zovida<span className="text-primary animate-pulse">.</span>
               </span>
             )}
-            {title && <h1 className="text-lg font-black md:hidden truncate max-w-[100px] sm:max-w-[150px] tracking-tight">{title}</h1>}
+            {title && <h1 className="text-lg font-black md:hidden truncate max-w-[100px] sm:max-w-[150px] tracking-tight ml-1">{title}</h1>}
           </div>
 
-          <nav className="hidden lg:flex items-center gap-1.5 p-1 bg-slate-100/40 dark:bg-slate-900/40 backdrop-blur-md rounded-2xl border border-white/20 dark:border-white/5 shadow-inner">
+          <nav className="hidden lg:flex items-center gap-1">
             {navItems.map((item) => {
               const isActive = item.path && location.pathname === item.path;
               return (
@@ -140,21 +141,15 @@ const Header = ({ showBack, title, onManualEntry, rightContent }: HeaderProps) =
                   variant="ghost" 
                   size="sm" 
                   className={cn(
-                    "text-[11px] font-bold rounded-xl px-4 h-9 transition-all duration-300 relative group/nav",
+                    "text-xs font-medium rounded-lg px-4 h-9 transition-colors",
                     isActive 
-                      ? "bg-white dark:bg-slate-800 text-primary shadow-md shadow-primary/5 ring-1 ring-slate-200/50 dark:ring-slate-700/50" 
-                      : "text-muted-foreground hover:text-primary hover:bg-white/60 dark:hover:bg-slate-800/60"
+                      ? "bg-slate-100 dark:bg-slate-800 text-primary" 
+                      : "text-muted-foreground hover:text-foreground hover:bg-slate-50 dark:hover:bg-slate-900"
                   )}
                   onClick={() => item.path ? navigate(item.path) : item.onClick?.()}
                 >
-                  <item.icon size={14} className={cn("mr-2 transition-transform duration-300 group-hover/nav:-translate-y-0.5", isActive ? "text-primary" : "text-muted-foreground")} />
+                  <item.icon size={14} className="mr-2" />
                   {item.label}
-                  {isActive && (
-                    <motion.div 
-                      layoutId="nav-pill"
-                      className="absolute bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 bg-primary rounded-full"
-                    />
-                  )}
                 </Button>
               );
             })}
@@ -163,63 +158,66 @@ const Header = ({ showBack, title, onManualEntry, rightContent }: HeaderProps) =
 
         <div className="flex items-center gap-2 sm:gap-3">
           {rightContent}
-          <div className="hidden sm:flex items-center gap-3 mr-1">
-            <Button 
-              variant="destructive" 
-              size="sm" 
-              className="h-9 px-5 rounded-xl font-black tracking-wide shadow-lg shadow-red-500/20 hover:shadow-red-500/40 transition-all active:scale-95 flex items-center gap-2 text-xs relative overflow-hidden group/sos"
-              onClick={() => navigate('/sos')}
-            >
-              <div className="absolute inset-0 bg-white/20 translate-y-full group-hover/sos:translate-y-0 transition-transform duration-300" />
-              <div className="w-1.5 h-1.5 bg-white rounded-full animate-pulse shadow-[0_0_8px_rgba(255,255,255,0.8)]" />
-              <span className="relative z-10">SOS</span>
-            </Button>
-            <div className="w-px h-6 bg-slate-200/50 dark:bg-slate-800/50 mx-0.5" />
-          </div>
           
-          <Button 
-            variant="destructive" 
-            size="icon" 
-            className="sm:hidden rounded-xl h-9 w-9 shadow-lg shadow-red-500/20 active:scale-90 transition-transform"
-            onClick={() => navigate('/sos')}
-          >
-            <Phone size={18} />
-          </Button>
-
-          <div className="flex items-center gap-1.5 bg-slate-100/40 dark:bg-slate-900/40 backdrop-blur-md p-1 rounded-2xl border border-white/20 dark:border-white/5 shadow-inner">
+          <div className="flex items-center gap-2">
             <LanguageSwitcher />
             {user ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <div className="flex items-center gap-2 pl-1.5 pr-0.5 cursor-pointer outline-none">
-                    <div className="flex flex-col items-end hidden md:flex group/profile">
-                      <span className="text-[11px] font-black text-foreground leading-none group-hover:text-primary transition-colors">
+                  <div className="flex items-center gap-2 pl-2 pr-1 cursor-pointer outline-none group/avatar">
+                    <div className="flex flex-col items-end hidden md:flex">
+                      <span className="text-[11px] font-bold text-foreground leading-none group-hover/avatar:text-primary transition-colors">
                         {user.name || 'User'}
                       </span>
-                      <div className="flex items-center gap-1 mt-1">
-                        <div className="w-1 h-1 rounded-full bg-safe animate-pulse" />
-                        <span className="text-[7px] font-bold text-muted-foreground uppercase tracking-[0.2em]">
-                          Free Tier
-                        </span>
-                      </div>
+                      <span className="text-[8px] font-medium text-muted-foreground uppercase mt-1">
+                        Free Tier
+                      </span>
                     </div>
                     
-                    <div className="relative group/avatar">
-                      <div className="absolute -inset-1 bg-gradient-to-tr from-primary to-blue-400 rounded-xl blur opacity-20 group-hover/avatar:opacity-40 transition-opacity" />
-                      <div className="relative h-8 w-8 rounded-lg bg-gradient-to-tr from-primary to-blue-400 flex items-center justify-center text-white font-black text-xs shadow-lg shadow-primary/20 border border-white/20">
+                    <Avatar className="h-10 w-10 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
+                      <AvatarImage src="" />
+                      <AvatarFallback className="bg-primary text-white font-bold text-sm rounded-xl">
                         {(user.name || 'U')[0].toUpperCase()}
-                      </div>
-                    </div>
+                      </AvatarFallback>
+                    </Avatar>
                   </div>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-48">
-                  <DropdownMenuItem onClick={() => navigate('/profile')} className="cursor-pointer">
-                    <UserIcon className="mr-2 h-4 w-4" />
-                    <span>Profile</span>
+                <DropdownMenuContent align="end" className="w-56 mt-2 rounded-xl border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 p-1">
+                  <DropdownMenuLabel className="px-3 py-2">
+                    <div className="flex flex-col gap-0.5">
+                      <p className="text-sm font-bold">{user.name || 'User'}</p>
+                      <p className="text-[10px] text-muted-foreground truncate">{user.email}</p>
+                    </div>
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem 
+                    onClick={() => navigate('/profile')}
+                    className="rounded-lg px-3 py-2 text-xs font-medium gap-3 focus:bg-slate-100 dark:focus:bg-slate-800 cursor-pointer"
+                  >
+                    <UserIcon size={14} />
+                    Profile Settings
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={handleLogout} className="cursor-pointer text-red-500 focus:text-red-500 focus:bg-red-50 dark:focus:bg-red-950/30">
-                    <LogOut className="mr-2 h-4 w-4" />
-                    <span>Log out</span>
+                  <DropdownMenuItem 
+                    onClick={() => navigate('/family')}
+                    className="rounded-lg px-3 py-2 text-xs font-medium gap-3 focus:bg-slate-100 dark:focus:bg-slate-800 cursor-pointer"
+                  >
+                    <Shield size={14} />
+                    SafeCircle
+                  </DropdownMenuItem>
+                  <DropdownMenuItem 
+                    onClick={() => navigate('/history')}
+                    className="rounded-lg px-3 py-2 text-xs font-medium gap-3 focus:bg-slate-100 dark:focus:bg-slate-800 cursor-pointer"
+                  >
+                    <History size={14} />
+                    Checkup History
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem 
+                    onClick={handleLogout}
+                    className="rounded-lg px-3 py-2 text-xs font-medium gap-3 focus:bg-red-50 dark:focus:bg-red-900/20 text-red-500 cursor-pointer"
+                  >
+                    <LogOut size={14} />
+                    Sign Out
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -228,7 +226,7 @@ const Header = ({ showBack, title, onManualEntry, rightContent }: HeaderProps) =
                 variant="default" 
                 size="sm" 
                 onClick={() => navigate('/auth')} 
-                className="hidden sm:flex rounded-xl h-8 px-5 font-bold shadow-lg shadow-primary/20 hover:shadow-primary/40 hover:-translate-y-0.5 transition-all text-[11px] bg-gradient-to-r from-primary to-blue-600 border-none"
+                className="hidden sm:flex rounded-lg h-8 px-4 font-bold text-xs bg-primary hover:bg-primary/90"
               >
                 Sign In
               </Button>

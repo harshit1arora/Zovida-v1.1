@@ -65,7 +65,7 @@ const ScanPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 relative overflow-hidden">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 relative overflow-hidden pb-[env(safe-area-inset-bottom,0px)] pt-[env(safe-area-inset-top,0px)]">
       {/* Animated Background Elements */}
       <div className="absolute inset-0 -z-10 overflow-hidden pointer-events-none">
         <div className="absolute top-[-10%] right-[-10%] w-[50%] h-[50%] bg-primary/10 rounded-full blur-[120px] animate-pulse" />
@@ -77,16 +77,17 @@ const ScanPage = () => {
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            exit={{ opacity: 0, scale: 0.95 }}
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/40 backdrop-blur-xl"
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-slate-950/40 backdrop-blur-xl"
           >
              <motion.div
-               initial={{ scale: 0.9, opacity: 0, y: 30 }}
-               animate={{ scale: 1, opacity: 1, y: 0 }}
-               transition={{ type: "spring", damping: 25, stiffness: 300 }}
-               className="w-full max-w-md"
+               initial={{ y: "100%", opacity: 0 }}
+               animate={{ y: 0, opacity: 1 }}
+               exit={{ y: "100%", opacity: 0 }}
+               transition={{ type: "spring", damping: 25, stiffness: 200 }}
+               className="w-full max-w-md mt-auto md:mt-0"
              >
-               <Card className="border-none shadow-[0_30px_60px_rgba(0,0,0,0.15)] dark:shadow-[0_30px_60px_rgba(0,0,0,0.4)] bg-white/95 dark:bg-slate-900/95 rounded-2xl overflow-hidden">
+               <Card className="border-none shadow-[0_30px_60px_rgba(0,0,0,0.15)] dark:shadow-[0_30px_60px_rgba(0,0,0,0.4)] bg-white/95 dark:bg-slate-900/95 rounded-t-[2.5rem] md:rounded-3xl overflow-hidden">
                  <CardHeader className="text-center pb-1 pt-8 px-6">
                    <div className="mx-auto bg-gradient-to-br from-primary to-primary/60 w-16 h-16 rounded-2xl flex items-center justify-center mb-6 shadow-2xl shadow-primary/30 rotate-3">
                      <Shield className="w-8 h-8 text-white" />
@@ -116,9 +117,9 @@ const ScanPage = () => {
                      </motion.div>
                    ))}
                  </CardContent>
-                 <CardFooter className="flex flex-col gap-3 p-8 pt-1">
+                 <CardFooter className="flex flex-col gap-3 p-8 pt-1 pb-[calc(2rem+env(safe-area-inset-bottom,0px))] md:pb-8">
                    <Button 
-                     className="w-full h-12 bg-primary hover:bg-primary/90 rounded-xl text-lg font-black shadow-2xl shadow-primary/25 transition-all active:scale-95 group" 
+                     className="w-full h-14 bg-primary hover:bg-primary/90 rounded-2xl text-lg font-black shadow-2xl shadow-primary/25 transition-all active:scale-95 group" 
                      size="lg" 
                      onClick={handleConsent}
                    >
@@ -126,12 +127,12 @@ const ScanPage = () => {
                      <ArrowLeft className="w-5 h-5 ml-2 rotate-180 transition-transform group-hover:translate-x-1" />
                    </Button>
                    <Button 
-                     variant="ghost" 
-                     className="w-full h-10 rounded-xl font-bold text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-xs"
-                     onClick={handleClose}
-                   >
-                     Cancel
-                   </Button>
+                    variant="ghost" 
+                    className="w-full h-12 rounded-xl font-bold text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-xs"
+                    onClick={handleClose}
+                  >
+                    Cancel
+                  </Button>
                  </CardFooter>
                </Card>
              </motion.div>
@@ -160,15 +161,15 @@ const ScanPage = () => {
             className="fixed inset-0 z-[70] flex flex-col bg-white dark:bg-slate-950"
           >
             {/* Header */}
-            <header className="sticky top-0 z-50 bg-white/80 dark:bg-slate-950/80 backdrop-blur-2xl border-b border-slate-100 dark:border-slate-900">
+            <header className="sticky top-0 z-50 bg-white/80 dark:bg-slate-950/80 backdrop-blur-2xl border-b border-slate-100 dark:border-slate-900 pt-[env(safe-area-inset-top,0px)]">
               <div className="container flex items-center justify-between h-14 px-4 max-w-4xl mx-auto">
                 <Button 
                   variant="ghost" 
                   size="icon" 
                   onClick={handleClose}
-                  className="rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 h-9 w-9"
+                  className="rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 h-12 w-12"
                 >
-                  <ArrowLeft size={18} className="text-slate-600 dark:text-slate-400" />
+                  <ArrowLeft size={20} className="text-slate-600 dark:text-slate-400" />
                 </Button>
                 <div className="flex items-center gap-2">
                   <div className="bg-primary/10 p-1 rounded-lg">

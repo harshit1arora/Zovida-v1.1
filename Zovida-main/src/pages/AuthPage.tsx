@@ -163,7 +163,7 @@ const AuthPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-white dark:bg-slate-950 flex flex-col relative overflow-hidden">
+    <div className="min-h-screen bg-white dark:bg-slate-950 flex flex-col relative overflow-hidden pb-[env(safe-area-inset-bottom,0px)] pt-[env(safe-area-inset-top,0px)]">
       {/* Animated Background Elements */}
       <div className="absolute inset-0 -z-10">
         <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary/10 rounded-full blur-[120px] animate-pulse" />

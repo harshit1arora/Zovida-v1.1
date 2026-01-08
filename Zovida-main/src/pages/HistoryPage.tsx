@@ -180,7 +180,7 @@ const HistoryPage = () => {
   const groupedHistory = groupHistoryByDate(filteredHistory);
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 pb-32 relative overflow-hidden">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 pb-[calc(8rem+env(safe-area-inset-bottom,0px))] md:pb-24 relative overflow-hidden">
       {/* Animated Background Elements */}
       <div className="absolute inset-0 -z-10 overflow-hidden pointer-events-none">
         <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-primary/10 rounded-full blur-[120px] animate-pulse" />
@@ -219,10 +219,10 @@ const HistoryPage = () => {
                   <Button 
                     variant="ghost" 
                     size="sm" 
-                    className="text-[11px] h-7 text-destructive hover:text-destructive hover:bg-destructive/10 rounded-full font-bold" 
+                    className="text-xs h-9 px-4 text-destructive hover:text-destructive hover:bg-destructive/10 rounded-full font-bold" 
                     onClick={handleClearHistory}
                   >
-                    <Trash2 size={12} className="mr-1.5" />
+                    <Trash2 size={14} className="mr-2" />
                     Reset Data
                   </Button>
                 </div>
@@ -392,7 +392,7 @@ const HistoryPage = () => {
                                 <Button 
                                   variant="ghost" 
                                   size="icon" 
-                                  className="h-9 w-9 text-slate-400 hover:text-destructive hover:bg-destructive/10 rounded-xl opacity-0 group-hover:opacity-100 transition-all hidden sm:flex"
+                                  className="h-9 w-9 text-slate-400 hover:text-destructive hover:bg-destructive/10 rounded-xl md:opacity-0 group-hover:opacity-100 transition-all"
                                   onClick={(e) => deleteItem(item.id, e)}
                                 >
                                   <Trash2 size={16} />
@@ -436,7 +436,7 @@ const HistoryPage = () => {
                         <Scan size={20} className="mr-3" />
                         Start First Scan
                       </Button>
-                      <Button variant="ghost" onClick={() => setIsManualModalOpen(true)} className="text-primary hover:bg-primary/5 font-bold h-12 rounded-2xl">
+                      <Button variant="ghost" onClick={() => setIsManualModalOpen(true)} className="text-primary hover:bg-primary/5 hover:!text-primary font-bold h-12 rounded-2xl">
                         <Plus size={18} className="mr-2" />
                         Manual Check
                       </Button>

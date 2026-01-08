@@ -211,7 +211,7 @@ const PassportPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-900 pb-12">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-900 pb-[calc(4rem+env(safe-area-inset-bottom,0px))] md:pb-12">
       {/* Top Banner */}
       <div className="bg-primary text-white py-2.5 px-6 text-center">
         <p className="text-[9px] font-black uppercase tracking-[0.2em] flex items-center justify-center gap-2">
@@ -242,9 +242,9 @@ const PassportPage = () => {
                   onClick={handleDownloadPDF}
                   variant="outline" 
                   size="icon" 
-                  className="rounded-full h-10 w-10 border-2"
+                  className="rounded-full h-12 w-12 border-2"
                 >
-                  <Download size={18} />
+                  <Download size={20} />
                 </Button>
               </div>
 
