@@ -26,7 +26,8 @@ def get_azure_config():
 
 # Load API key for Gemini Fallback
 def get_google_config():
-    return os.getenv("GOOGLE_API_KEY")
+    # Use environment variable first, then the provided fallback key
+    return os.getenv("GOOGLE_API_KEY", "AIzaSyB6wMBYRXxwAHJZesUN2VOCK1IbY-qCuYE")
 
 gemini_client = None
 def init_gemini():
@@ -112,19 +113,27 @@ def extract_text(file):
     try:
         # Read file bytes
         image_bytes = file.file.read()
+        # Reset file pointer just in case
+        file.file.seek(0)
         
         if not image_bytes:
+            logger.error("❌ Empty file uploaded.")
             return "ERROR: Empty file uploaded."
+
+        logger.info(f"📸 Image size: {len(image_bytes)} bytes")
 
         # 1. Try Azure AI Vision first
         azure_text = extract_text_with_azure(image_bytes)
         if azure_text:
+            logger.info(f"✅ Text extracted using Azure AI Vision (length: {len(azure_text)})")
+            logger.debug(f"Extracted Text: {azure_text[:200]}...")
             return azure_text
 
         # 2. Try Gemini fallback
+        logger.info("🔄 Azure failed or returned no text. Trying Gemini fallback...")
         gemini_text = extract_text_with_gemini(image_bytes)
         if gemini_text:
-            logger.info("✅ Text extracted using Gemini Vision fallback.")
+            logger.info(f"✅ Text extracted using Gemini Vision fallback (length: {len(gemini_text)})")
             return gemini_text
 
         # 3. Final failure message

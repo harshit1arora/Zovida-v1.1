@@ -16,6 +16,14 @@ export interface DrugInteraction {
   recommendation: string;
 }
 
+export interface InteractionExplanation {
+  drug1: string;
+  drug2: string;
+  explanation: string;
+  risks: string;
+  recommendation: string;
+}
+
 export interface DoctorRating {
   totalReviews: number;
   averageScore: number;
@@ -30,6 +38,8 @@ export interface AnalysisResult {
   medicines: Medicine[];
   overallRisk: RiskLevel;
   interactions: DrugInteraction[];
+  extractedText?: string;
+  interactionExplanations?: InteractionExplanation[];
   aiExplanation: string;
   simpleExplanation?: string;
   doctorRating: DoctorRating;

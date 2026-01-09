@@ -167,8 +167,14 @@ export const useScanStore = create<ScanStore>((set, get) => ({
         medicines: medicines,
         overallRisk: overallRisk,
         interactions: interactions,
-        aiExplanation: `Our analysis identified ${medicines.length} medications and ${interactions.length} potential interactions. ${overallRisk === 'danger' ? 'Significant safety concerns were detected.' : overallRisk === 'caution' ? 'Some precautions are recommended.' : 'No major immediate risks were found.'}`,
-        simpleExplanation: `We found ${interactions.length} interaction(s). ${overallRisk === 'danger' ? 'Please talk to your doctor immediately.' : overallRisk === 'caution' ? 'Be careful and monitor for side effects.' : 'Everything looks mostly safe.'}`,
+        extractedText: data.extracted_text,
+        interactionExplanations: backendAnalysis.interaction_explanations || [],
+        aiExplanation: medicines.length > 0 
+          ? `Our analysis identified ${medicines.length} medications and ${interactions.length} potential interactions. ${overallRisk === 'danger' ? 'Significant safety concerns were detected.' : overallRisk === 'caution' ? 'Some precautions are recommended.' : 'No major immediate risks were found.'}`
+          : `No recognizable medications were detected in the prescription. Please ensure the image is clear or try manual entry.`,
+        simpleExplanation: medicines.length > 0
+          ? `We found ${interactions.length} interaction(s). ${overallRisk === 'danger' ? 'Please talk to your doctor immediately.' : overallRisk === 'caution' ? 'Be careful and monitor for side effects.' : 'Everything looks mostly safe.'}`
+          : `We couldn't find any medicine names in the scan. You can try adding them manually.`,
         lifestyleWarnings: backendLifestyle,
         doctorRating: backendAnalysis.doctorRating || generateDoctorRating(overallRisk),
         recommendations: [

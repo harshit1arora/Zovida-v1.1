@@ -426,6 +426,27 @@ const ResultsPage = () => {
                 </p>
               </div>
               
+              {result.extractedText && (
+                <Collapsible className="mt-4">
+                  <CollapsibleTrigger asChild>
+                    <Button variant="ghost" size="sm" className="w-full flex items-center justify-between p-3 h-auto bg-slate-50 dark:bg-slate-800/50 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+                      <div className="flex items-center gap-2">
+                        <FileText className="w-4 h-4 text-slate-500" />
+                        <span className="text-xs font-bold text-slate-500">View Extracted Text</span>
+                      </div>
+                      <ChevronDown className="w-4 h-4 text-slate-400" />
+                    </Button>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent className="mt-2">
+                    <div className="p-4 rounded-xl bg-slate-50/50 dark:bg-slate-800/30 border border-slate-100 dark:border-slate-800">
+                      <p className="text-[11px] font-mono text-slate-500 dark:text-slate-400 whitespace-pre-wrap leading-relaxed">
+                        {result.extractedText}
+                      </p>
+                    </div>
+                  </CollapsibleContent>
+                </Collapsible>
+              )}
+              
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                 {/* Common Side Effects */}
                 {result.sideEffects && result.sideEffects.length > 0 && (
@@ -705,6 +726,7 @@ const ResultsPage = () => {
                   <InteractionCard 
                     interaction={interaction} 
                     index={index}
+                    interactionExplanations={result.interactionExplanations}
                   />
                 </motion.div>
               ))}
